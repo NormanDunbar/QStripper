@@ -35,6 +35,7 @@ public:
     bool saveFile(const QString &fileName);
     bool ExportText();
     bool ExportHTML();
+    bool ExportPDF();
     bool ExportDocbook();
     QString userFriendlyCurrentFile();
     QString currentFile() { return curFile; }
