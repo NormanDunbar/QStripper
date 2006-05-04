@@ -51,6 +51,7 @@ private slots:
     void ExportText();
     void ExportHTML();
     void ExportDocbook();
+    void ExportPDF();
     MdiChild *createMdiChild();
 
 private:
@@ -99,6 +100,7 @@ private:
     QAction *ExportHTMLAct;
     QAction *ExportTextAct;
     QAction *ExportDocbookAct;
+    QAction *ExportPDFAct;
     QAction *RenameQuillAct;
 };
 

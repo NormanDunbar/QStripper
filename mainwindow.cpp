@@ -111,6 +111,11 @@ void MainWindow::ExportHTML()
     activeMdiChild()->ExportHTML();
 }
 
+void MainWindow::ExportPDF()
+{
+    activeMdiChild()->ExportPDF();
+}
+
 void MainWindow::ExportDocbook()
 {
     activeMdiChild()->ExportDocbook();
@@ -122,7 +127,7 @@ void MainWindow::about()
             tr("<p><b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
                "open multiple QL Quill documents and save them in various (other) formats.</p>"
                "<p>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
-               "<br><ul><li>Text<li>Html<li>Docbook XML</ul></p>"
+               "<br><ul><li>Text<li>Html<li>Docbook XML</ul><li>PDF</ul></p>"
                "<p><b>Contact Details :</b></p>"
                "<p>Web site : http://www.dunbar-it.co.uk<br>"
                "Email : norman@dunbar-it.co.uk</p>"));
@@ -140,6 +145,7 @@ void MainWindow::updateMenus()
     TileHAct->setEnabled(hasMdiChild);
     TileVAct->setEnabled(hasMdiChild);
     ExportHTMLAct->setEnabled(hasMdiChild);
+    ExportPDFAct->setEnabled(hasMdiChild);
     ExportTextAct->setEnabled(hasMdiChild);
     ExportDocbookAct->setEnabled(hasMdiChild);
     cascadeAct->setEnabled(hasMdiChild);
@@ -311,6 +317,10 @@ void MainWindow::createActions()
     ExportDocbookAct->setStatusTip(tr("Export the current file as DocBook XML"));
     connect(ExportDocbookAct, SIGNAL(triggered()), this, SLOT(ExportDocbook()));
 
+    ExportPDFAct = new QAction(QIcon(":/images/exportpdf.png"), tr("Export &PDF"), this);
+    ExportPDFAct->setShortcut(tr("Ctrl+Shift+P"));
+    ExportPDFAct->setStatusTip(tr("Export the current file as PDF"));
+    connect(ExportPDFAct, SIGNAL(triggered()), this, SLOT(ExportPDF()));
 }
 
 
@@ -332,6 +342,7 @@ void MainWindow::createMenus()
     exportMenu->addAction(ExportTextAct);
     exportMenu->addAction(ExportHTMLAct);
     exportMenu->addAction(ExportDocbookAct);
+    exportMenu->addAction(ExportPDFAct);
 
     windowMenu = menuBar()->addMenu(tr("&Window"));
     connect(windowMenu, SIGNAL(aboutToShow()), this, SLOT(updateWindowMenu()));
@@ -360,7 +371,8 @@ void MainWindow::createToolBars()
     exportToolBar->addAction(ExportTextAct);
     exportToolBar->addAction(ExportHTMLAct);
     exportToolBar->addAction(ExportDocbookAct);
-    
+    exportToolBar->addAction(ExportPDFAct);
+
     toolsToolBar = addToolBar(tr("Tools"));
     //toolsToolBar->addAction(RenameQuillAct);
 }

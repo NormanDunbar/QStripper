@@ -10,5 +10,6 @@
     <file>images/fileinfo.png</file>
     <file>images/question.png</file>
     <file>images/qt.png</file>
+    <file>images/exportpdf.png</file>
 </qresource>
 </RCC>

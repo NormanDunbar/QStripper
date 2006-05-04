@@ -323,6 +323,20 @@ bool MdiChild::ExportHTML()
     return true;
 }
 
+bool MdiChild::ExportPDF()
+{
+#ifndef QT_NO_PRINTER
+    QString fileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
+    if (fileName.isEmpty())
+        return false;
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
+    document()->print(&printer);
+    return true;
+#endif
+}
+
 bool MdiChild::ExportDocbook()
 {
     return false;
