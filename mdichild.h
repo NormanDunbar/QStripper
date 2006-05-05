@@ -37,6 +37,12 @@ public:
     bool ExportHTML();
     bool ExportPDF();
     bool ExportDocbook();
+    bool TextBold(const bool Checked);
+    bool TextItalic(const bool Checked);
+    bool TextUnderline(const bool Checked);
+    bool TextSubScript(const bool Checked);
+    bool TextSuperScript(const bool Checked);
+    bool FilePrint();
     QString userFriendlyCurrentFile();
     QString currentFile() { return curFile; }
 

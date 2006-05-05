@@ -121,13 +121,45 @@ void MainWindow::ExportDocbook()
     activeMdiChild()->ExportDocbook();
 }
 
+void MainWindow::TextBold()
+{
+    activeMdiChild()->TextBold(TextBoldAct->isChecked());
+}
+
+void MainWindow::TextItalic()
+{
+    activeMdiChild()->TextItalic(TextItalicAct->isChecked());
+}
+
+void MainWindow::TextUnderline()
+{
+    activeMdiChild()->TextUnderline(TextUnderlineAct->isChecked());
+}
+
+void MainWindow::TextSubScript()
+{
+    activeMdiChild()->TextSubScript(TextSubscriptAct->isChecked());
+}
+
+void MainWindow::TextSuperScript()
+{
+    activeMdiChild()->TextSuperScript(TextSuperscriptAct->isChecked());
+}
+
+
+void MainWindow::FilePrint()
+{
+    activeMdiChild()->FilePrint();
+}
+
+
 void MainWindow::about()
 {
    QMessageBox::about(this, tr("About QStripper"),
             tr("<p><b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
                "open multiple QL Quill documents and save them in various (other) formats.</p>"
                "<p>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
-               "<br><ul><li>Text<li>Html<li>Docbook XML</ul><li>PDF</ul></p>"
+               "<br><ul><li>Text<li>Html<li>Docbook XML<li>PDF</ul></p>"
                "<p><b>Contact Details :</b></p>"
                "<p>Web site : http://www.dunbar-it.co.uk<br>"
                "Email : norman@dunbar-it.co.uk</p>"));
@@ -152,6 +184,14 @@ void MainWindow::updateMenus()
     nextAct->setEnabled(hasMdiChild);
     previousAct->setEnabled(hasMdiChild);
     separatorAct->setVisible(hasMdiChild);
+    TextBoldAct->setEnabled(hasMdiChild);
+    TextItalicAct->setEnabled(hasMdiChild);
+    TextUnderlineAct->setEnabled(hasMdiChild);
+    TextSubscriptAct->setEnabled(hasMdiChild);
+    TextSuperscriptAct->setEnabled(hasMdiChild);
+    FilePrintAct->setEnabled(hasMdiChild);
+
+    pasteAct->setEnabled(hasMdiChild);
 
     bool hasSelection = (activeMdiChild() && activeMdiChild()->textCursor().hasSelection());
     cutAct->setEnabled(hasSelection);
@@ -224,6 +264,11 @@ void MainWindow::createActions()
     saveAsAct = new QAction(QIcon(":/images/save.png"), tr("Save &As..."), this);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
+
+    FilePrintAct = new QAction(QIcon(":/images/fileprint.png"), tr("&Print..."), this);
+    FilePrintAct->setShortcut(tr("Ctrl+P"));
+    FilePrintAct->setStatusTip(tr("Print the active document"));
+    connect(FilePrintAct, SIGNAL(triggered()), this, SLOT(FilePrint()));
 
     exitAct = new QAction(QIcon(":/images/exit.png"), tr("E&xit"), this);
     exitAct->setShortcut(tr("Ctrl+Q"));
@@ -321,6 +366,38 @@ void MainWindow::createActions()
     ExportPDFAct->setShortcut(tr("Ctrl+Shift+P"));
     ExportPDFAct->setStatusTip(tr("Export the current file as PDF"));
     connect(ExportPDFAct, SIGNAL(triggered()), this, SLOT(ExportPDF()));
+
+    TextBoldAct = new QAction(QIcon(":/images/textbold.png"), tr("&Bold"), this);
+    TextBoldAct->setShortcut(Qt::CTRL + Qt::Key_B);
+    QFont bold;
+    bold.setBold(true);
+    TextBoldAct->setFont(bold);
+    connect(TextBoldAct, SIGNAL(triggered()), this, SLOT(TextBold()));
+    TextBoldAct->setCheckable(true);
+
+    TextUnderlineAct = new QAction(QIcon(":/images/textunder.png"), tr("&Underline"), this);
+    TextUnderlineAct->setShortcut(Qt::CTRL + Qt::Key_U);
+    QFont Under;
+    Under.setUnderline(true);
+    TextUnderlineAct->setFont(Under);
+    connect(TextUnderlineAct, SIGNAL(triggered()), this, SLOT(TextUnderline()));
+    TextUnderlineAct->setCheckable(true);
+
+    TextItalicAct = new QAction(QIcon(":/images/textitalic.png"), tr("&Italic"), this);
+    TextItalicAct->setShortcut(Qt::CTRL + Qt::Key_I);
+    QFont Italic;
+    Italic.setItalic(true);
+    TextItalicAct->setFont(Italic);
+    connect(TextItalicAct, SIGNAL(triggered()), this, SLOT(TextItalic()));
+    TextItalicAct->setCheckable(true);
+
+    TextSubscriptAct = new QAction(QIcon(":/images/textsubscript.png"), tr("SubScript"), this);
+    connect(TextSubscriptAct, SIGNAL(triggered()), this, SLOT(TextSubScript()));
+    TextSubscriptAct->setCheckable(true);
+
+    TextSuperscriptAct = new QAction(QIcon(":/images/textsuperscript.png"), tr("SuperScript"), this);
+    connect(TextSuperscriptAct, SIGNAL(triggered()), this, SLOT(TextSuperScript()));
+    TextSuperscriptAct->setCheckable(true);
 }
 
 
@@ -331,6 +408,8 @@ void MainWindow::createMenus()
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addSeparator();
+    fileMenu->addAction(FilePrintAct);
+    fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
@@ -338,16 +417,23 @@ void MainWindow::createMenus()
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
 
-    exportMenu = menuBar()->addMenu(tr("E&xport"));
+    exportMenu = menuBar()->addMenu(tr("Ex&port"));
     exportMenu->addAction(ExportTextAct);
     exportMenu->addAction(ExportHTMLAct);
     exportMenu->addAction(ExportDocbookAct);
     exportMenu->addAction(ExportPDFAct);
 
-    windowMenu = menuBar()->addMenu(tr("&Window"));
-    connect(windowMenu, SIGNAL(aboutToShow()), this, SLOT(updateWindowMenu()));
+    textMenu = menuBar()->addMenu(tr("Te&xt"));
+    textMenu->addAction(TextBoldAct);
+    textMenu->addAction(TextItalicAct);
+    textMenu->addAction(TextUnderlineAct);
+    textMenu->addAction(TextSubscriptAct);
+    textMenu->addAction(TextSuperscriptAct);
 
     toolsMenu = menuBar()->addMenu(tr("&Tools"));
+
+    windowMenu = menuBar()->addMenu(tr("&Window"));
+    connect(windowMenu, SIGNAL(aboutToShow()), this, SLOT(updateWindowMenu()));
 
     menuBar()->addSeparator();
 
@@ -361,6 +447,7 @@ void MainWindow::createToolBars()
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
+    fileToolBar->addAction(FilePrintAct);
 
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->addAction(cutAct);
@@ -372,6 +459,13 @@ void MainWindow::createToolBars()
     exportToolBar->addAction(ExportHTMLAct);
     exportToolBar->addAction(ExportDocbookAct);
     exportToolBar->addAction(ExportPDFAct);
+
+    textToolBar = addToolBar(tr("Text"));
+    textToolBar->addAction(TextBoldAct);
+    textToolBar->addAction(TextItalicAct);
+    textToolBar->addAction(TextUnderlineAct);
+    textToolBar->addAction(TextSubscriptAct);
+    textToolBar->addAction(TextSuperscriptAct);
 
     toolsToolBar = addToolBar(tr("Tools"));
     //toolsToolBar->addAction(RenameQuillAct);
