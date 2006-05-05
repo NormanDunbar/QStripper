@@ -52,6 +52,13 @@ private slots:
     void ExportHTML();
     void ExportDocbook();
     void ExportPDF();
+    void TextBold();
+    void TextItalic();
+    void TextUnderline();
+    void TextSubScript();
+    void TextSuperScript();
+    void FilePrint();
+
     MdiChild *createMdiChild();
 
 private:
@@ -73,11 +80,13 @@ private:
     QMenu *windowMenu;
     QMenu *helpMenu;
     QMenu *toolsMenu;
+    QMenu *textMenu;
 
     QToolBar *fileToolBar;
     QToolBar *editToolBar;
     QToolBar *exportToolBar;
     QToolBar *toolsToolBar;
+    QToolBar *textToolBar;
 
     QAction *openAct;
     QAction *saveAct;
@@ -102,6 +111,12 @@ private:
     QAction *ExportDocbookAct;
     QAction *ExportPDFAct;
     QAction *RenameQuillAct;
+    QAction *TextBoldAct;
+    QAction *TextItalicAct;
+    QAction *TextUnderlineAct;
+    QAction *TextSubscriptAct;
+    QAction *TextSuperscriptAct;
+    QAction *FilePrintAct;
 };
 
 #endif

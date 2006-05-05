@@ -18,6 +18,7 @@
 
 #include <QtGui>
 #include <QStack>
+#include <Qt3Support/Q3TextEdit>
 
 #include "mdichild.h"
 
@@ -138,7 +139,7 @@ QString MdiChild::ReadQuillFile(QDataStream &in, bool &FormatError)
     Contents.append("<P>");
 
     FormatError = false;
-    for (int x = WhereAmI; x < Pointer; ++x) {
+    for (unsigned int x = WhereAmI; x < Pointer; ++x) {
        in >> Char;
        switch (Char) {
          case 0 : Contents.append("</P>\n<P>"); break;    // Paragraph end.
@@ -295,8 +296,7 @@ bool MdiChild::ExportText()
 
 bool MdiChild::ExportHTML()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Export As HTML"),
-                                                    curFile);
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export as HTML"), QString(), "*.html");
     if (fileName.isEmpty())
         return false;
 
@@ -325,22 +325,75 @@ bool MdiChild::ExportHTML()
 
 bool MdiChild::ExportPDF()
 {
-#ifndef QT_NO_PRINTER
-    QString fileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
-    if (fileName.isEmpty())
+    QString FileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
+    if (FileName.isEmpty())
         return false;
-    QPrinter printer(QPrinter::HighResolution);
-    printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setOutputFileName(fileName);
-    document()->print(&printer);
+
+    QPrinter Pdf(QPrinter::HighResolution);
+    Pdf.setOutputFormat(QPrinter::PdfFormat);
+    Pdf.setOutputFileName(FileName);
+    document()->print(&Pdf);
     return true;
-#endif
 }
 
 bool MdiChild::ExportDocbook()
 {
+    QString FileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
+    if (FileName.isEmpty())
+        return false;
+
     return false;
 }
+
+
+bool MdiChild::FilePrint()
+{
+    QTextDocument *doc = document();
+    QPrinter printer;
+
+    QPrintDialog *dlg = new QPrintDialog(&printer, this);
+    if (dlg->exec() != QDialog::Accepted)
+        return false;
+
+    doc->print(&printer);
+    return true;
+}
+
+
+bool MdiChild::TextBold(const bool Checked)
+{
+    setFontWeight(Checked ? QFont::Bold : QFont::Normal);
+    return Checked;
+}
+
+
+bool MdiChild::TextItalic(const bool Checked)
+{
+    setFontItalic(Checked);
+    return Checked;
+}
+
+
+bool MdiChild::TextUnderline(const bool Checked)
+{
+    setFontUnderline(Checked);
+    return Checked;
+}
+
+
+bool MdiChild::TextSubScript(const bool Checked)
+{
+    //setVerticalAlignment(Checked ? Q3TextEdit::AlignSubScript : Q3TextEdit::AlignNormal);
+    return Checked;
+}
+
+
+bool MdiChild::TextSuperScript(const bool Checked)
+{
+    //setVerticalAlignment(Checked ? Q3TextEdit::AlignSuperScript : Q3TextEdit::AlignNormal);
+    return Checked;
+}
+
 
 QString MdiChild::userFriendlyCurrentFile()
 {

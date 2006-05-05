@@ -8,8 +8,14 @@
     <file>images/save.png</file>
     <file>images/exit.png</file>
     <file>images/fileinfo.png</file>
+    <file>images/fileprint.png</file>
     <file>images/question.png</file>
     <file>images/qt.png</file>
     <file>images/exportpdf.png</file>
+    <file>images/textbold.png</file>
+    <file>images/textunder.png</file>
+    <file>images/textitalic.png</file>
+    <file>images/textsubscript.png</file>
+    <file>images/textsuperscript.png</file>
 </qresource>
 </RCC>
