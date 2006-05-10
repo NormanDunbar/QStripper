@@ -40,8 +40,6 @@ protected:
 
 private slots:
     void open();
-    void save();
-    void saveAs();
     void cut();
     void copy();
     void paste();
@@ -89,8 +87,6 @@ private:
     QToolBar *textToolBar;
 
     QAction *openAct;
-    QAction *saveAct;
-    QAction *saveAsAct;
     QAction *exitAct;
     QAction *cutAct;
     QAction *copyAct;

@@ -11,3 +11,6 @@ INCLUDEPATH += .
 HEADERS += mainwindow.h mdichild.h ndworkspace.h quill.h
 SOURCES += main.cpp mainwindow.cpp mdichild.cpp ndworkspace.cpp quill.cpp 
 RESOURCES += qstripper.qrc
+
+# Make the app link statically to the various DLLs. (Appears to be ignored!)
+QMAKE_LFLAGS += -static

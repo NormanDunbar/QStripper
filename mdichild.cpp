@@ -143,8 +143,8 @@ QString MdiChild::ReadQuillFile(QDataStream &in, bool &FormatError)
        in >> Char;
        switch (Char) {
          case 0 : Contents.append("</P>\n<P>"); break;    // Paragraph end.
-//         case 9 : break;                         // Tab - passed through. (Default)
-         case 12: break;                           // Form Feed - ignored.
+         case 9 : Contents.append("&nbsp;&nbsp;&nbsp;&nbsp;"); break;           // Tab - replace by 4 hard spaces
+         case 12: break;                                  // Form Feed - ignored.
          case 15: if (BoldOn) {
                     // Bold is currently on - check the stack as top one must be bold too.
                     if (stack.pop() != Bold) {
@@ -221,53 +221,10 @@ QString MdiChild::ReadQuillFile(QDataStream &in, bool &FormatError)
 
 }
 
-bool MdiChild::save()
-{
-    // Not used, export file instead
-    return false;
-    /*
-    if (isUntitled) {
-        return saveAs();
-    } else {
-        return saveFile(curFile);
-    }
-    */
-}
-
-bool MdiChild::saveAs()
-{
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
-                                                    curFile);
-    if (fileName.isEmpty())
-        return false;
-
-    return saveFile(fileName);
-}
-
-bool MdiChild::saveFile(const QString &fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("QStripper"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return false;
-    }
-
-    QTextStream out(&file);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    out << toPlainText();
-    QApplication::restoreOverrideCursor();
-
-    setCurrentFile(fileName);
-    return true;
-}
-
 bool MdiChild::ExportText()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Export As Plain Text"),
-                                                    curFile);
+   QString fileName = QFileDialog::getSaveFileName(this, tr("Export as plain text"), QString(), "*.txt");
+  // QString fileName = QFileDialog::getSaveFileName(this, tr("Export As Plain Text"), curFile);
     if (fileName.isEmpty())
         return false;
 
@@ -338,11 +295,26 @@ bool MdiChild::ExportPDF()
 
 bool MdiChild::ExportDocbook()
 {
-    QString FileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
+    QString FileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.xml");
     if (FileName.isEmpty())
         return false;
 
-    return false;
+    QFile file(FileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("QStripper"),
+                             tr("Cannot write DocBook XML file %1:\n%2.")
+                             .arg(FileName)
+                             .arg(file.errorString()));
+        return false;
+    }
+
+    QTextStream out(&file);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    out << "Not Yet Implementyed - Sorry :o(\n" ;
+    QApplication::restoreOverrideCursor();
+
+    return true;
 }
 
 
@@ -402,34 +374,12 @@ QString MdiChild::userFriendlyCurrentFile()
 
 void MdiChild::closeEvent(QCloseEvent *event)
 {
-    if (maybeSave()) {
-        event->accept();
-    } else {
-        event->ignore();
-    }
+    event->accept();
 }
 
 void MdiChild::documentWasModified()
 {
     setWindowModified(document()->isModified());
-}
-
-bool MdiChild::maybeSave()
-{
-    if (document()->isModified()) {
-        int ret = QMessageBox::warning(this, tr("QStripper"),
-                     tr("'%1' has been modified.\n"
-                        "Do you want to save your changes?")
-                     .arg(userFriendlyCurrentFile()),
-                     QMessageBox::Yes | QMessageBox::Default,
-                     QMessageBox::No,
-                     QMessageBox::Cancel | QMessageBox::Escape);
-        if (ret == QMessageBox::Yes)
-            return save();
-        else if (ret == QMessageBox::Cancel)
-            return false;
-    }
-    return true;
 }
 
 void MdiChild::setCurrentFile(const QString &fileName)

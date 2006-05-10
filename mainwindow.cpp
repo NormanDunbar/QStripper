@@ -74,18 +74,6 @@ void MainWindow::open()
     }
 }
 
-void MainWindow::save()
-{
-    if (activeMdiChild()->save())
-        statusBar()->showMessage(tr("File saved"), 2000);
-}
-
-void MainWindow::saveAs()
-{
-    if (activeMdiChild()->saveAs())
-        statusBar()->showMessage(tr("File saved"), 2000);
-}
-
 void MainWindow::cut()
 {
     activeMdiChild()->cut();
@@ -162,14 +150,12 @@ void MainWindow::about()
                "<br><ul><li>Text<li>Html<li>Docbook XML<li>PDF</ul></p>"
                "<p><b>Contact Details :</b></p>"
                "<p>Web site : http://www.dunbar-it.co.uk<br>"
-               "Email : norman@dunbar-it.co.uk</p>"));
+               "Email : Norman@Dunbar-IT.co.uk</p>"));
 }
 
 void MainWindow::updateMenus()
 {
     bool hasMdiChild = (activeMdiChild() != 0);
-    saveAct->setEnabled(hasMdiChild);
-    saveAsAct->setEnabled(hasMdiChild);
     pasteAct->setEnabled(hasMdiChild);
     closeAct->setEnabled(hasMdiChild);
     closeAllAct->setEnabled(hasMdiChild);
@@ -256,15 +242,6 @@ void MainWindow::createActions()
     openAct->setStatusTip(tr("Open an existing file"));
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
-    saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
-    saveAct->setShortcut(tr("Ctrl+S"));
-    saveAct->setStatusTip(tr("Save the document to disk"));
-    connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
-
-    saveAsAct = new QAction(QIcon(":/images/save.png"), tr("Save &As..."), this);
-    saveAsAct->setStatusTip(tr("Save the document under a new name"));
-    connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
-
     FilePrintAct = new QAction(QIcon(":/images/fileprint.png"), tr("&Print..."), this);
     FilePrintAct->setShortcut(tr("Ctrl+P"));
     FilePrintAct->setStatusTip(tr("Print the active document"));
@@ -296,8 +273,7 @@ void MainWindow::createActions()
     closeAct = new QAction(tr("Cl&ose"), this);
     closeAct->setShortcut(tr("Ctrl+F4"));
     closeAct->setStatusTip(tr("Close the active window"));
-    connect(closeAct, SIGNAL(triggered()),
-            workspace, SLOT(closeActiveWindow()));
+    connect(closeAct, SIGNAL(triggered()),  workspace, SLOT(closeActiveWindow()));
 
     closeAllAct = new QAction(tr("Close &All"), this);
     closeAllAct->setStatusTip(tr("Close all the windows"));
@@ -347,17 +323,17 @@ void MainWindow::createActions()
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-    ExportTextAct = new QAction(QIcon(":/images/save.png"), tr("Export &Text"), this);
+    ExportTextAct = new QAction(QIcon(":/images/exporttxt.png"), tr("Export &Text"), this);
     ExportTextAct->setShortcut(tr("Ctrl+Shift+T"));
     ExportTextAct->setStatusTip(tr("Export the current file as plain text"));
     connect(ExportTextAct, SIGNAL(triggered()), this, SLOT(ExportText()));
 
-    ExportHTMLAct = new QAction(QIcon(":/images/save.png"), tr("Export &HTML"), this);
+    ExportHTMLAct = new QAction(QIcon(":/images/exporthtml.png"), tr("Export &HTML"), this);
     ExportHTMLAct->setShortcut(tr("Ctrl+Shift+H"));
     ExportHTMLAct->setStatusTip(tr("Export the current file as HTML"));
     connect(ExportHTMLAct, SIGNAL(triggered()), this, SLOT(ExportHTML()));
 
-    ExportDocbookAct = new QAction(QIcon(":/images/save.png"), tr("Export &DocBook XML"), this);
+    ExportDocbookAct = new QAction(QIcon(":/images/exportxml.png"), tr("Export &DocBook XML"), this);
     ExportDocbookAct->setShortcut(tr("Ctrl+Shift+D"));
     ExportDocbookAct->setStatusTip(tr("Export the current file as DocBook XML"));
     connect(ExportDocbookAct, SIGNAL(triggered()), this, SLOT(ExportDocbook()));
@@ -405,8 +381,6 @@ void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(openAct);
-    fileMenu->addAction(saveAct);
-    fileMenu->addAction(saveAsAct);
     fileMenu->addSeparator();
     fileMenu->addAction(FilePrintAct);
     fileMenu->addSeparator();
@@ -423,7 +397,7 @@ void MainWindow::createMenus()
     exportMenu->addAction(ExportDocbookAct);
     exportMenu->addAction(ExportPDFAct);
 
-    textMenu = menuBar()->addMenu(tr("Te&xt"));
+    textMenu = menuBar()->addMenu(tr("&Format"));
     textMenu->addAction(TextBoldAct);
     textMenu->addAction(TextItalicAct);
     textMenu->addAction(TextUnderlineAct);
@@ -446,7 +420,6 @@ void MainWindow::createToolBars()
 {
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->addAction(openAct);
-    fileToolBar->addAction(saveAct);
     fileToolBar->addAction(FilePrintAct);
 
     editToolBar = addToolBar(tr("Edit"));
@@ -460,7 +433,7 @@ void MainWindow::createToolBars()
     exportToolBar->addAction(ExportDocbookAct);
     exportToolBar->addAction(ExportPDFAct);
 
-    textToolBar = addToolBar(tr("Text"));
+    textToolBar = addToolBar(tr("Format"));
     textToolBar->addAction(TextBoldAct);
     textToolBar->addAction(TextItalicAct);
     textToolBar->addAction(TextUnderlineAct);

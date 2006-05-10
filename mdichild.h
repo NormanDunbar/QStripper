@@ -30,9 +30,6 @@ public:
     MdiChild();
 
     bool loadFile(const QString &fileName);
-    bool save();
-    bool saveAs();
-    bool saveFile(const QString &fileName);
     bool ExportText();
     bool ExportHTML();
     bool ExportPDF();
@@ -53,7 +50,6 @@ private slots:
     void documentWasModified();
 
 private:
-    bool maybeSave();
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
 
