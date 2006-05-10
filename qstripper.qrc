@@ -12,6 +12,9 @@
     <file>images/question.png</file>
     <file>images/qt.png</file>
     <file>images/exportpdf.png</file>
+    <file>images/exporttxt.png</file>
+    <file>images/exporthtml.png</file>
+    <file>images/exportxml.png</file>
     <file>images/textbold.png</file>
     <file>images/textunder.png</file>
     <file>images/textitalic.png</file>
