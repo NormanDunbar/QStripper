@@ -144,13 +144,14 @@ void MainWindow::FilePrint()
 void MainWindow::about()
 {
    QMessageBox::about(this, tr("About QStripper"),
-            tr("<p><b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
-               "open multiple QL Quill documents and save them in various (other) formats.</p>"
-               "<p>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
-               "<br><ul><li>Text<li>Html<li>Docbook XML<li>PDF</ul></p>"
-               "<p><b>Contact Details :</b></p>"
-               "<p>Web site : http://www.dunbar-it.co.uk<br>"
-               "Email : Norman@Dunbar-IT.co.uk</p>"));
+            tr("<b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
+               "open multiple QL Quill documents and save them in various (other) formats."
+               "<br>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
+               "<br><br><ul><li>Text<li>Html<li>Docbook XML<li>PDF</ul><hr>"
+               "<b>Contact Details :</b>"
+               "Web site : http://www.dunbar-it.co.uk<br>"
+               "Email : Norman@Dunbar-IT.co.uk<hr>"
+               "The source code for this application is available from the above email address."));
 }
 
 void MainWindow::updateMenus()
