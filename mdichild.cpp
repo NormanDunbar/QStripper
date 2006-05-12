@@ -144,6 +144,9 @@ QString MdiChild::ReadQuillFile(QDataStream &in, bool &FormatError)
        switch (Char) {
          case 0 : Contents.append("</P>\n<P>"); break;    // Paragraph end.
          case 9 : Contents.append("&nbsp;&nbsp;&nbsp;&nbsp;"); break;           // Tab - replace by 4 hard spaces
+         case '<': Contents.append("&lt;"); break;
+         case '>': Contents.append("&gt;"); break;
+         case '&': Contents.append("&amp;"); break;
          case 12: break;                                  // Form Feed - ignored.
          case 15: if (BoldOn) {
                     // Bold is currently on - check the stack as top one must be bold too.
@@ -215,9 +218,9 @@ QString MdiChild::ReadQuillFile(QDataStream &in, bool &FormatError)
     }
 
     Contents.append("</P>");
-    return "Header = " + Header +
-           "\n\n\n\nContents = " + Contents +
-           "\n\n\n\nFooter = " + Footer;
+    return Header + "<hr>" +
+           Contents + "<hr>" +
+           Footer;
 
 }
 
