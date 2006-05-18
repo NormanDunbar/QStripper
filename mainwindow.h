@@ -22,6 +22,7 @@
 #include <QMainWindow>
 
 class QAction;
+class QActionGroup;
 class QMenu;
 class QWorkspace;
 class MdiChild;
@@ -113,6 +114,8 @@ private:
     QAction *TextSubscriptAct;
     QAction *TextSuperscriptAct;
     QAction *FilePrintAct;
+    
+    QActionGroup *ScriptActionGroup;
 };
 
 #endif

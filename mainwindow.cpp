@@ -124,14 +124,25 @@ void MainWindow::TextUnderline()
     activeMdiChild()->TextUnderline(TextUnderlineAct->isChecked());
 }
 
+// Superscript and SubScript are/should be mutually exclusive. To enable this, I can
+// add them both to an ActionGroup whihc has been setExclusive. This works in that it
+// does allow only one of the two actions to be 'checked'. Unfortunately, I cannot get
+// them all off again. The ActionGroup has nothing like an AllowAllUp property, so I
+// have to do it manually here.
+// Bummer.
 void MainWindow::TextSubScript()
 {
-    activeMdiChild()->TextSubScript(TextSubscriptAct->isChecked());
+    bool Checked = TextSubscriptAct->isChecked();
+    activeMdiChild()->TextSubScript(Checked);
+    TextSuperscriptAct->setChecked(false);
+
 }
 
 void MainWindow::TextSuperScript()
 {
-    activeMdiChild()->TextSuperScript(TextSuperscriptAct->isChecked());
+    bool Checked = TextSuperscriptAct->isChecked();
+    activeMdiChild()->TextSuperScript(Checked);
+    TextSubscriptAct->setChecked(false);
 }
 
 
@@ -375,6 +386,14 @@ void MainWindow::createActions()
     TextSuperscriptAct = new QAction(QIcon(":/images/textsuperscript.png"), tr("SuperScript"), this);
     connect(TextSuperscriptAct, SIGNAL(triggered()), this, SLOT(TextSuperScript()));
     TextSuperscriptAct->setCheckable(true);
+
+    // The problem with Super and Sub script is this, they cannot both be on at the same time.
+    // This action group, with exclusive set to true, allows ONE of its member to be on.
+    // Unfortunately, once one member is ON, you cannot turn all of the mebers OFF again. :o(
+    //ScriptActionGroup = new QActionGroup(this);
+    //ScriptActionGroup->setExclusive(true);
+    //ScriptActionGroup->addAction(TextSubscriptAct);
+    //ScriptActionGroup->addAction(TextSuperscriptAct);
 }
 
 

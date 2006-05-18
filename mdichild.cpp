@@ -212,8 +212,10 @@ QString MdiChild::ReadQuillFile(QDataStream &in, bool &FormatError)
                   SuperOn = !SuperOn;
                   continue;
                   break;
-         case 30: continue; break;                 // Soft hyphen - ignored.
-         default: Contents.append(Char);           // Pass through.
+         case 30: continue; break;                       // Soft hyphen - ignored.
+         case 96: Contents.append("&pound;"); break;     // £ for UK currency
+         case 127: Contents.append("&copy;"); break;
+         default: Contents.append(Char);                 // Pass through.
        }
     }
 
@@ -337,35 +339,46 @@ bool MdiChild::FilePrint()
 
 bool MdiChild::TextBold(const bool Checked)
 {
-    setFontWeight(Checked ? QFont::Bold : QFont::Normal);
+    QTextCharFormat Format = currentCharFormat();
+    Format.setFontWeight(Checked ? QFont::Bold : QFont::Normal);
+    setCurrentCharFormat(Format);
     return Checked;
 }
 
 
 bool MdiChild::TextItalic(const bool Checked)
 {
-    setFontItalic(Checked);
+    QTextCharFormat Format = currentCharFormat();
+    Format.setFontItalic(Checked);
+    setCurrentCharFormat(Format);
     return Checked;
 }
 
 
 bool MdiChild::TextUnderline(const bool Checked)
 {
-    setFontUnderline(Checked);
+    QTextCharFormat Format = currentCharFormat();
+    Format.setFontUnderline(Checked);
+    setCurrentCharFormat(Format);
     return Checked;
 }
 
-
 bool MdiChild::TextSubScript(const bool Checked)
 {
-    //setVerticalAlignment(Checked ? Q3TextEdit::AlignSubScript : Q3TextEdit::AlignNormal);
+    //QMessageBox::warning(this, "SubScript", Checked ? "Checked" : "Unchecked");
+    QTextCharFormat Format = currentCharFormat();
+    Format.setVerticalAlignment(Checked ? QTextCharFormat::AlignSubScript : QTextCharFormat::AlignNormal);
+    setCurrentCharFormat(Format);
     return Checked;
 }
 
 
 bool MdiChild::TextSuperScript(const bool Checked)
 {
-    //setVerticalAlignment(Checked ? Q3TextEdit::AlignSuperScript : Q3TextEdit::AlignNormal);
+    //QMessageBox::warning(this, "SuperScript", Checked ? "Checked" : "Unchecked");
+    QTextCharFormat Format = currentCharFormat();
+    Format.setVerticalAlignment(Checked ? QTextCharFormat::AlignSuperScript : QTextCharFormat::AlignNormal);
+    setCurrentCharFormat(Format);
     return Checked;
 }
 
