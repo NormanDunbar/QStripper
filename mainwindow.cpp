@@ -26,11 +26,9 @@ MainWindow::MainWindow()
 {
     workspace = new NDWorkspace;
     setCentralWidget(workspace);
-    connect(workspace, SIGNAL(windowActivated(QWidget *)),
-            this, SLOT(updateMenus()));
+    connect(workspace, SIGNAL(windowActivated(QWidget *)), this, SLOT(updateMenus()));
     windowMapper = new QSignalMapper(this);
-    connect(windowMapper, SIGNAL(mapped(QWidget *)),
-            workspace, SLOT(setActiveWindow(QWidget *)));
+    connect(windowMapper, SIGNAL(mapped(QWidget *)), workspace, SLOT(setActiveWindow(QWidget *)));
 
     createActions();
     createMenus();
@@ -42,6 +40,29 @@ MainWindow::MainWindow()
 
     setWindowTitle(tr("QStripper Open Source Edition"));
 }
+
+
+// Slot to update the various Text Formatting Actions when the cursor moves
+// over a 'new' format in any child window.
+void MainWindow::FormatChanged(const QTextCharFormat &Format)
+{
+   TextBoldAct->setChecked(Format.font().bold());
+   TextItalicAct->setChecked(Format.font().italic());
+   TextUnderlineAct->setChecked(Format.font().underline());
+   switch (Format.verticalAlignment()) {
+     case QTextCharFormat::AlignNormal : TextSubscriptAct->setChecked(false);
+                                         TextSuperscriptAct->setChecked(false);
+                                         break;
+     case QTextCharFormat::AlignSuperScript : TextSubscriptAct->setChecked(false);
+                                              TextSuperscriptAct->setChecked(true);
+                                              break;
+     case QTextCharFormat::AlignSubScript : TextSubscriptAct->setChecked(true);
+                                            TextSuperscriptAct->setChecked(false);
+                                            break;
+   }
+}
+
+
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -66,6 +87,9 @@ void MainWindow::open()
 
         MdiChild *child = createMdiChild();
         if (child->loadFile(fileName)) {
+            // Each child has a signal when the text format changes, hook this up to
+            // our own slot so that we cah set/unset the various font formatting actions.
+            connect(child, SIGNAL(FormatChanged(const QTextCharFormat &)), this, SLOT(FormatChanged(const QTextCharFormat &)));
             statusBar()->showMessage(tr("File loaded"), 2000);
             child->show();
         } else {

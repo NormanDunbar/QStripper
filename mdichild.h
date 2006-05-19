@@ -48,6 +48,10 @@ protected:
 
 private slots:
     void documentWasModified();
+    void TextFormatChanged(const QTextCharFormat &Format);
+    
+signals:
+    void FormatChanged(const QTextCharFormat &Format);
 
 private:
     void setCurrentFile(const QString &fileName);

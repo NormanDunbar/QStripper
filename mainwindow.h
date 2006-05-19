@@ -28,6 +28,7 @@ class QWorkspace;
 class MdiChild;
 class QSignalMapper;
 class NDWorkspace;
+class QTextCharFormat;
 
 class MainWindow : public QMainWindow
 {
@@ -57,6 +58,7 @@ private slots:
     void TextSubScript();
     void TextSuperScript();
     void FilePrint();
+    void FormatChanged(const QTextCharFormat &Format);
 
     MdiChild *createMdiChild();
 
@@ -114,7 +116,7 @@ private:
     QAction *TextSubscriptAct;
     QAction *TextSuperscriptAct;
     QAction *FilePrintAct;
-    
+
     QActionGroup *ScriptActionGroup;
 };
 

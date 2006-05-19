@@ -26,9 +26,20 @@ MdiChild::MdiChild()
 {
     setAttribute(Qt::WA_DeleteOnClose);
 
-    connect(document(), SIGNAL(contentsChanged()),
-            this, SLOT(documentWasModified()));
+    connect(document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
+    if (!connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
+            this, SIGNAL(FormatChanged(const QTextCharFormat &)))
+        ) QMessageBox::critical(this, "Oops", "Cannot connect slots");
+
 }
+
+// No longer fired - signal->signal above.
+void MdiChild::TextFormatChanged(const QTextCharFormat &Format)
+{
+   QMessageBox::warning(this, "In Child", "Format changed");
+   emit FormatChanged(Format);
+}
+
 
 bool MdiChild::loadFile(const QString &fileName)
 {
