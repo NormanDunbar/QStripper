@@ -239,7 +239,8 @@ QString MdiChild::ReadQuillFile(QDataStream &in, bool &FormatError)
 
 bool MdiChild::ExportText()
 {
-   QString fileName = QFileDialog::getSaveFileName(this, tr("Export as plain text"), QString(), "*.txt");
+   static QString fileName;
+   fileName = QFileDialog::getSaveFileName(this, tr("Export as plain text"), fileName, "Text Files (*.txt);;All files (*.*)");
   // QString fileName = QFileDialog::getSaveFileName(this, tr("Export As Plain Text"), curFile);
     if (fileName.isEmpty())
         return false;
@@ -269,7 +270,8 @@ bool MdiChild::ExportText()
 
 bool MdiChild::ExportHTML()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Export as HTML"), QString(), "*.html");
+    static QString fileName;
+    fileName = QFileDialog::getSaveFileName(this, tr("Export as HTML"), fileName, "HTML Files (*.html;*.htm);;All files (*.*)");
     if (fileName.isEmpty())
         return false;
 
@@ -298,7 +300,8 @@ bool MdiChild::ExportHTML()
 
 bool MdiChild::ExportPDF()
 {
-    QString FileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.pdf");
+    static QString FileName;
+    FileName = QFileDialog::getSaveFileName(this, "Export PDF", FileName, "PDF files (*.pdf);;All files (*.*)");
     if (FileName.isEmpty())
         return false;
 
@@ -311,7 +314,8 @@ bool MdiChild::ExportPDF()
 
 bool MdiChild::ExportDocbook()
 {
-    QString FileName = QFileDialog::getSaveFileName(this, "Export PDF", QString(), "*.xml");
+    QString FileName;
+    FileName = QFileDialog::getSaveFileName(this, "Export PDF", FileName, "XML files (*.xml);;All files (*.*)");
     if (FileName.isEmpty())
         return false;
 
