@@ -18,9 +18,9 @@
 
 #include <QtGui>
 #include <QStack>
-#include <Qt3Support/Q3TextEdit>
 
 #include "mdichild.h"
+#include "quill.h"
 
 MdiChild::MdiChild()
 {
@@ -33,49 +33,23 @@ MdiChild::MdiChild()
 
 }
 
-// No longer fired - signal->signal above.
-void MdiChild::TextFormatChanged(const QTextCharFormat &Format)
-{
-   QMessageBox::warning(this, "In Child", "Format changed");
-   emit FormatChanged(Format);
-}
-
-
 bool MdiChild::loadFile(const QString &fileName)
 {
     QFile file(fileName);
-    QString Contents;
-    bool Error = false;
-
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("QStripper"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return false;
-    }
-
-    QDataStream in(&file);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    // setPlainText(in.readAll()); - if only it were that easy :o)
-    Contents = ReadQuillFile(in, Error);
-    QApplication::restoreOverrideCursor();
-
-    if (Contents.isEmpty()) {
-      QMessageBox::critical(this, tr("QStripper"), tr("This is not a Quill file."));
+    QuillDoc *Input = new QuillDoc(fileName);
+    if (!Input->isValid()) {
+      QMessageBox::critical(this, tr("QStripper"),
+                            tr("This is not a Quill file.\nError message :\n\n") + QString(Input->getError()));
+      delete Input;
       return false;
-    }
-    
-    if (Error) {
-       QMessageBox::warning(this, tr("QStripper"), 
-                            tr("Bold, Underline, Subscript or Superscript off control code\n"
-                               "found out of sequence - see text for details"));
     }
 
     //setPlainText(Contents);
-    setHtml(Contents);
-    Contents.clear();
+    setHtml(Input->getHeader() + QString("<hr>") +
+            Input->getText() + QString("<hr>") +
+            Input->getFooter());
 
+    delete Input;
     setCurrentFile(fileName);
     return true;
 }
@@ -84,158 +58,6 @@ const int Bold = 1;
 const int Under = 2;
 const int Subscript = 4;
 const int Superscript = 8;
-
-QString MdiChild::ReadQuillFile(QDataStream &in, bool &FormatError)
-{
-    // Read in a Quill doc file - assuming we have one so check first.
-    // The first two bytes are ignored.
-    // The next 8 bytes are "vrm1qdf0"
-    // The next 4 bytes are 'big-endian' long pointer to the text length.
-    // The next 6 bytes are ignored.
-    // The first paragraph is the doc header and starts at position 20 and
-    // finishes at a byte of zero.
-    // The second one is the doc footer which also finishes on a zero byte.
-    // The rest are the doc contents. This starts at byte 20 if no header and footer
-    // and ends just before the end pointer.
-
-    QString Header;
-    QString Footer;
-    QString Contents;
-    quint32 Pointer = 0;
-    ulong WhereAmI = 20;
-    quint8 Char;
-    bool BoldOn = false;
-    bool UnderOn = false;
-    bool SubOn = false;
-    bool SuperOn = false;
-    QStack<int> stack;
-
-
-    // The first two bytes are ignored.
-    in.skipRawData(2);
-
-    // The next 8 bytes are "vrm1qdf0"
-    for (int x = 0; x < 8; ++x) {
-       in >> Char;
-       Header.append(Char);
-    }
-
-    if (Header != "vrm1qdf0") {
-       return "";
-    }
-
-    // The next 4 bytes are big-endian pointer to the text length.
-    in.setByteOrder(QDataStream::BigEndian);
-    in >> Pointer;
-
-    // Read the header from position 20 up to the next zero byte.
-    in.skipRawData(6);
-    Header.clear();
-
-    for (int x = 0; ; ++x) {
-       in >> Char;
-       ++WhereAmI;
-       if (Char == 0) break;
-       Header.append(Char);
-    }
-
-    // Read the footer next, up to the next zero byte.
-    for (int x = 0; ; ++x) {
-       in >> Char;
-       ++WhereAmI;
-       if (Char == 0) break;
-       Footer.append(Char);
-    }
-
-    Contents.append("<P>");
-
-    FormatError = false;
-    for (unsigned int x = WhereAmI; x < Pointer; ++x) {
-       in >> Char;
-       switch (Char) {
-         case 0 : Contents.append("</P>\n<P>"); break;    // Paragraph end.
-         case 9 : Contents.append("&nbsp;&nbsp;&nbsp;&nbsp;"); break;           // Tab - replace by 4 hard spaces
-         case '<': Contents.append("&lt;"); break;
-         case '>': Contents.append("&gt;"); break;
-         case '&': Contents.append("&amp;"); break;
-         case 12: break;                                  // Form Feed - ignored.
-         case 15: if (BoldOn) {
-                    // Bold is currently on - check the stack as top one must be bold too.
-                    if (stack.pop() != Bold) {
-                      FormatError = true;
-                      Contents.append("</B>**** ERROR BOLD OFF OUT OF SEQUENCE *****");
-                    } else {
-                      Contents.append("</B>");
-                    }
-                  } else {
-                      // Bold is currently off - stack it and turn it on.
-                      Contents.append("<B>");
-                      stack.push(Bold);
-                  }
-                  BoldOn = !BoldOn;
-                  continue;
-                  break;
-         case 16: if (UnderOn) {
-                    // Underline is currently on - check the stack as top one must be the same.
-                    if (stack.pop() != Under) {
-                      FormatError = true;
-                      Contents.append("</U>**** ERROR UNDERLINE OFF OUT OF SEQUENCE *****");
-                    } else {
-                      Contents.append("</U>");
-                    }
-                  } else {
-                      // Under is currently off - stack it and turn it on.
-                      Contents.append("<U>");
-                    stack.push(Under);
-                  }
-                  UnderOn = !UnderOn;
-                  continue;
-                  break;
-         case 17: if (SubOn) {
-                    // Subscript is currently on - check the stack as top one must be the same.
-                    if (stack.pop() != Subscript) {
-                      FormatError = true;
-                      Contents.append("</SUB>**** ERROR SUBSCRIPT OFF OUT OF SEQUENCE *****");
-                    } else {
-                      Contents.append("</SUB>");
-                    }
-                  } else {
-                      // Subscript is currently off - stack it and turn it on.
-                      Contents.append("<SUB>");
-                    stack.push(Subscript);
-                  }
-                  SubOn = !SubOn;
-                  continue;
-                  break;
-         case 18: if (SuperOn) {
-                    // Superscript is currently on - check the stack as top one must be the same.
-                    if (stack.pop() != Superscript) {
-                      FormatError = true;
-                      Contents.append("</SUP>**** ERROR SUPERSCRIPT OFF OUT OF SEQUENCE *****");
-                    } else {
-                      Contents.append("</SUP>");
-                    }
-                  } else {
-                      // Superscript is currently off - stack it and turn it on.
-                      Contents.append("<SUP>");
-                    stack.push(Superscript);
-                  }
-                  SuperOn = !SuperOn;
-                  continue;
-                  break;
-         case 30: continue; break;                       // Soft hyphen - ignored.
-         case 96: Contents.append("&pound;"); break;     // £ for UK currency
-         case 127: Contents.append("&copy;"); break;
-         default: Contents.append(Char);                 // Pass through.
-       }
-    }
-
-    Contents.append("</P>");
-    return Header + "<hr>" +
-           Contents + "<hr>" +
-           Footer;
-
-}
 
 bool MdiChild::ExportText()
 {
@@ -330,10 +152,47 @@ bool MdiChild::ExportDocbook()
 
     QTextStream out(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
+    
+    // XML header first.
+    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    out << "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.2//EN\"\n";
+    out << "\"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd\">\n";
 
-    out << "Not Yet Implementyed - Sorry :o(\n" ;
+    // Make this an article, or book, or ...
+    out << "<article>\n";
+    out << "<title>" << "TITLE HERE" << "</title>\n";
+
+    // We must have at least one section ...
+    //out << "<section>\n";
+    //out << "<title>" << FileName << "</title>\n";
+
+    // We've got hard spaces, +/- etc in the text !
+    char Nbsp = 0xa0;
+    char PlusMinus = 0xB1;
+
+    // The content is plain paragraphs.
+    for (QTextBlock ThisBlock = document()->begin();
+                    ThisBlock != document()->end();
+                    ThisBlock = ThisBlock.next()) {
+      QString ThisPara = ThisBlock.text();
+
+      if (!ThisPara.isEmpty()) {
+         // Do this first - so we don't change &lt; to &amp;lt; !
+         ThisPara.replace(QString("&"), QString("&amp;"));
+         ThisPara.replace(QString("<"), QString("&lt;"));
+         ThisPara.replace(QString(">"), QString("&gt;"));
+         ThisPara.replace(QString("\t"), QString("    "));
+         ThisPara.replace(QString(PlusMinus), QString("&plusmn;"));
+         ThisPara.replace(QString(Nbsp), QString(" "));
+
+         out << "<para>" << ThisPara << "</para>\n\n";
+      }
+    }
+
+    //out << "</section>\n";
+    out << "</article>\n";
+
     QApplication::restoreOverrideCursor();
-
     return true;
 }
 
