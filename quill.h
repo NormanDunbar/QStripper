@@ -19,32 +19,34 @@
 #ifndef QUILL_H
 #define QUILL_H
 
-#include <QTextStream>
+class QFile;
+class QDataStream;
 
-class QuillDoc
-{
+#include <QtGui>
+#include <QObject>
 
-public:
-    QuillDoc(const QString &Filename);
-    ~QuillDoc();
-    QString TextHeader();              // Return stripped Quill document header.
-    QString TextFooter();              // Ditto the footer.
-    QString TextContents();            // And the contents.
-    QString HTMLHeader();              // Return Quill header as HTML.
-    QString HTMLFooter();              // Ditto the footer.
-    QString HTMLContents();            // And the contents.
-    QString XMLHeader();               // Return Quill header as DocBook XML.
-    QString XMLFooter();               // Ditto the footer.
-    QString XMLContents();             // And the contents.
-protected:
+class QuillDoc {
 
 private:
-    QString DocFile;                   // Original Quill file.
-    QString HTMLFile;                  // Exported HTML filename.
-    QString XMLFile;                   // Exported DocBook filename.
-    QString TextFile;                  // Exported Text filename.
-    
-    
+    quint16 fHeaderLength;                  // Quill header size - should be 20.
+    QString fQuillMagic;                    // Quill 'magic' flag = 'vrm1qdf0'.
+    QString fHeader;                        // Document header text.
+    QString fFooter;                        // Document footer text.
+    QString fText;                          // Document contents text.
+    quint32 fTextLength;                    // Size of the above.
+    bool    fValid;                         // Is this a valid Quill document? 
+    QString fErrorMessage;                  // What went wrong ?
+
+public :
+    QuillDoc(QString FileName);
+    ~QuillDoc() {};
+
+    QString getText();
+    quint32 getTextLength();
+    QString getHeader();
+    QString getFooter();
+    bool    isValid();
+    QString getError();
 };
 
 #endif

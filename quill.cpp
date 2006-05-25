@@ -17,29 +17,21 @@
 ****************************************************************************/
 
 #include "quill.h"
-#include <QStack>
+
+const int Bold = 1;
+const int Under = 2;
+const int Subscript = 4;
+const int Superscript = 8;
 
 
-QuillDoc::QuillDoc(const QString &Filename)
+//------------------------------------------------------------------------------
+// Constructor - opens the filename and reads in the raw data. As the data is
+// in QDOS format, it is converted to 'proper' ASCII format as it is read. This
+//is done with a simple translation table.
+//------------------------------------------------------------------------------
+QuillDoc::QuillDoc(QString FileName)
 {
-  
-  /*
-    // Read in a Quill doc file - assuming we have one so check first.
-    // The first two bytes are ignored.
-    // The next 8 bytes are "vrm1qdf0"
-    // The next 4 bytes are 'big-endian' long pointer to the text length.
-    // The next 6 bytes are ignored.
-    // The first paragraph is the doc header and starts at position 20 and
-    // finishes at a byte of zero.
-    // The second one is the doc footer which also finishes on a zero byte.
-    // The rest are the doc contents. This starts at byte 20 if no header and footer
-    // and ends just before the end pointer.
-
-    QString Header;
-    QString Footer;
-    QString Contents;
-    quint32 Pointer = 0;
-    ulong WhereAmI = 20;
+    ulong WhereAmI;
     quint8 Char;
     bool BoldOn = false;
     bool UnderOn = false;
@@ -48,62 +40,94 @@ QuillDoc::QuillDoc(const QString &Filename)
     QStack<int> stack;
 
 
-    // The first two bytes are ignored.
-    in.skipRawData(2);
+    // Make sure we read integers and stuff in BigEndian mode - like the QL does :o)
+    QFile file(FileName);
+    file.open(QIODevice::ReadOnly);
+    QDataStream in(&file);
+    in.setByteOrder(QDataStream::BigEndian);
 
-    // The next 8 bytes are "vrm1qdf0"
-    for (int x = 0; x < 8; ++x) {
-       in >> Char;
-       Header.append(Char);
+    // The first two bytes are 0x00 and 0x14 = 20 = Size of header block.
+    fValid = false;
+    in >> fHeaderLength;
+
+    if (fHeaderLength != 20) {
+        fValid = false;
+        fErrorMessage = QString("Header block length not equal 20 bytes, actually = %1").arg(fHeaderLength);
+        return;
     }
 
-    if (Header != "vrm1qdf0") {
-       return "";
+    // The next 8 bytes are "vrm1qdf0"
+    fQuillMagic.clear();
+    for (int x = 0; x < 8; ++x) {
+       in >> Char;
+       fQuillMagic.append(Char);
+    }
+
+    if (fQuillMagic != "vrm1qdf0") {
+        fValid = false;
+        fErrorMessage = QString("Header flag bytes not equal 'vrm1qdf0', actually = %1").arg(fQuillMagic);
+        return;
     }
 
     // The next 4 bytes are big-endian pointer to the text length.
-    in.setByteOrder(QDataStream::BigEndian);
-    in >> Pointer;
+    in >> fTextLength;
 
-    // Read the header from position 20 up to the next zero byte.
+    // Skip the three 2 byte pointers - we don't need them.
     in.skipRawData(6);
-    Header.clear();
 
+    // Read the document header from position 20 up to the next zero byte.
+    WhereAmI = 20;
+    fHeader.clear();
     for (int x = 0; ; ++x) {
        in >> Char;
        ++WhereAmI;
        if (Char == 0) break;
-       Header.append(Char);
+       fHeader.append(Char);
     }
 
     // Read the footer next, up to the next zero byte.
+    fFooter.clear();
     for (int x = 0; ; ++x) {
        in >> Char;
        ++WhereAmI;
        if (Char == 0) break;
-       Footer.append(Char);
+       fFooter.append(Char);
     }
 
-    Contents.append("<P>");
-
-    FormatError = false;
-    for (int x = WhereAmI; x < Pointer; ++x) {
+    // Now the contents.
+    fText.clear();
+    bool FormatError = false;
+    for (unsigned int x = WhereAmI; x < fTextLength; ++x) {
        in >> Char;
        switch (Char) {
-         case 0 : Contents.append("</P>\n<P>"); break;    // Paragraph end.
-//         case 9 : break;                         // Tab - passed through. (Default)
-         case 12: break;                           // Form Feed - ignored.
+         case 0 : // Paragraph end & reset attributes.
+                  BoldOn = UnderOn = SuperOn = SubOn = false;
+                  while (!stack.isEmpty()) {
+                    switch (stack.pop()) {
+                      case Bold : fText.append("</B>"); break;
+                      case Under : fText.append("</U>"); break;
+                      case Subscript : fText.append("</SUB>"); break;
+                      case Superscript : fText.append("</SUP>"); break;
+                    }
+                  }
+                  fText.append("</P>\n<P>");
+                  break;
+         case 9 : fText.append("&nbsp;&nbsp;&nbsp;&nbsp;"); break;           // Tab - replace by 4 hard spaces
+         case '<': fText.append("&lt;"); break;
+         case '>': fText.append("&gt;"); break;
+         case '&': fText.append("&amp;"); break;
+         case 12: break;                                  // Form Feed - ignored.
          case 15: if (BoldOn) {
                     // Bold is currently on - check the stack as top one must be bold too.
                     if (stack.pop() != Bold) {
                       FormatError = true;
-                      Contents.append("</B>**** ERROR BOLD OFF OUT OF SEQUENCE *****");
+                      fText.append("</B>**** ERROR BOLD OFF OUT OF SEQUENCE *****");
                     } else {
-                      Contents.append("</B>");
+                      fText.append("</B>");
                     }
                   } else {
                       // Bold is currently off - stack it and turn it on.
-                      Contents.append("<B>");
+                      fText.append("<B>");
                       stack.push(Bold);
                   }
                   BoldOn = !BoldOn;
@@ -113,13 +137,13 @@ QuillDoc::QuillDoc(const QString &Filename)
                     // Underline is currently on - check the stack as top one must be the same.
                     if (stack.pop() != Under) {
                       FormatError = true;
-                      Contents.append("</U>**** ERROR UNDERLINE OFF OUT OF SEQUENCE *****");
+                      fText.append("</U>**** ERROR UNDERLINE OFF OUT OF SEQUENCE *****");
                     } else {
-                      Contents.append("</U>");
+                      fText.append("</U>");
                     }
                   } else {
                       // Under is currently off - stack it and turn it on.
-                      Contents.append("<U>");
+                      fText.append("<U>");
                     stack.push(Under);
                   }
                   UnderOn = !UnderOn;
@@ -129,13 +153,13 @@ QuillDoc::QuillDoc(const QString &Filename)
                     // Subscript is currently on - check the stack as top one must be the same.
                     if (stack.pop() != Subscript) {
                       FormatError = true;
-                      Contents.append("</SUB>**** ERROR SUBSCRIPT OFF OUT OF SEQUENCE *****");
+                      fText.append("</SUB>**** ERROR SUBSCRIPT OFF OUT OF SEQUENCE *****");
                     } else {
-                      Contents.append("</SUB>");
+                      fText.append("</SUB>");
                     }
                   } else {
                       // Subscript is currently off - stack it and turn it on.
-                      Contents.append("<SUB>");
+                      fText.append("<SUB>");
                     stack.push(Subscript);
                   }
                   SubOn = !SubOn;
@@ -145,26 +169,79 @@ QuillDoc::QuillDoc(const QString &Filename)
                     // Superscript is currently on - check the stack as top one must be the same.
                     if (stack.pop() != Superscript) {
                       FormatError = true;
-                      Contents.append("</SUP>**** ERROR SUPERSCRIPT OFF OUT OF SEQUENCE *****");
+                      fText.append("</SUP>**** ERROR SUPERSCRIPT OFF OUT OF SEQUENCE *****");
                     } else {
-                      Contents.append("</SUP>");
+                      fText.append("</SUP>");
                     }
                   } else {
                       // Superscript is currently off - stack it and turn it on.
-                      Contents.append("<SUP>");
+                      fText.append("<SUP>");
                     stack.push(Superscript);
                   }
                   SuperOn = !SuperOn;
                   continue;
                   break;
-         case 30: continue; break;                 // Soft hyphen - ignored.
-         default: Contents.append(Char);           // Pass through.
+         case 30: continue; break;                       // Soft hyphen - ignored.
+         case 96: fText.append("&pound;"); break;     // £ for UK currency
+         case 127: fText.append("&copy;"); break;
+         default: fText.append(Char);                 // Pass through.
        }
     }
 
-    Contents.append("</P>");
-    return "Header = " + Header +
-           "\n\n\n\nContents = " + Contents +
-           "\n\n\n\nFooter = " + Footer;
-    */
+     fValid = true;
+     fErrorMessage = "";
+}
+
+
+//------------------------------------------------------------------------------
+// Returns a QString holding the body text from the original Quill document.
+//------------------------------------------------------------------------------
+QString QuillDoc::getText()
+{
+    return fText;
+}
+
+
+//------------------------------------------------------------------------------
+// Returns a QString holding the body text from the original Quill document.
+//------------------------------------------------------------------------------
+quint32 QuillDoc::getTextLength()
+{
+    return fTextLength;
+}
+
+
+//------------------------------------------------------------------------------
+// Returns a QString holding the header text from the original Quill document.
+//------------------------------------------------------------------------------
+QString QuillDoc::getHeader()
+{
+    return fHeader;
+}
+
+
+//------------------------------------------------------------------------------
+// Returns a QString holding the footer text from the original Quill document.
+//------------------------------------------------------------------------------
+QString QuillDoc::getFooter()
+{
+    return fFooter;
+}
+
+
+//------------------------------------------------------------------------------
+// Did we get a valid Quill document ?
+//------------------------------------------------------------------------------
+bool QuillDoc::isValid()
+{
+  return fValid;
+}
+
+
+//------------------------------------------------------------------------------
+// What was the last error that occurred ?
+//------------------------------------------------------------------------------
+QString QuillDoc::getError()
+{
+  return fErrorMessage;
 }

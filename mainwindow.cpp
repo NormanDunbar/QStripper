@@ -113,24 +113,43 @@ void MainWindow::paste()
     activeMdiChild()->paste();
 }
 
+//-----------------------------------------------------------------------------
+// Something wierd here. When we do an exportXXXX the active window is changed
+// to the first open window in the list. The 'hack' below saves the current one
+// the resets it after the export. I suspect, but have not proved, that it is
+// propbably because the active window changes when the FileOpen dialogue is
+// displayed.
+//-----------------------------------------------------------------------------
 void MainWindow::ExportText()
 {
-    activeMdiChild()->ExportText();
+    MdiChild *x = activeMdiChild();
+    x->ExportText();
+    workspace->setActiveWindow(x);
+    //activeMdiChild()->ExportText();
 }
 
 void MainWindow::ExportHTML()
 {
-    activeMdiChild()->ExportHTML();
+    MdiChild *x = activeMdiChild();
+    x->ExportHTML();
+    workspace->setActiveWindow(x);
+//    activeMdiChild()->ExportHTML();
 }
 
 void MainWindow::ExportPDF()
 {
-    activeMdiChild()->ExportPDF();
+    MdiChild *x = activeMdiChild();
+    x->ExportPDF();
+    workspace->setActiveWindow(x);
+//    activeMdiChild()->ExportPDF();
 }
 
 void MainWindow::ExportDocbook()
 {
-    activeMdiChild()->ExportDocbook();
+    MdiChild *x = activeMdiChild();
+    x->ExportDocbook();
+    workspace->setActiveWindow(x);
+//    activeMdiChild()->ExportDocbook();
 }
 
 void MainWindow::TextBold()

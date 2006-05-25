@@ -48,8 +48,7 @@ protected:
 
 private slots:
     void documentWasModified();
-    void TextFormatChanged(const QTextCharFormat &Format);
-    
+
 signals:
     void FormatChanged(const QTextCharFormat &Format);
 
@@ -59,7 +58,6 @@ private:
 
     QString curFile;
     bool isUntitled;
-    QString ReadQuillFile(QDataStream &in, bool &FormatError);
 };
 
 #endif
