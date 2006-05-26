@@ -46,6 +46,7 @@ private slots:
     void copy();
     void paste();
     void about();
+    void aboutBugs();
     void updateMenus();
     void updateWindowMenu();
     void ExportText();
@@ -102,6 +103,7 @@ private:
     QAction *previousAct;
     QAction *separatorAct;
     QAction *aboutAct;
+    QAction *aboutBugsAct;
     QAction *aboutQtAct;
     QAction *TileHAct;
     QAction *TileVAct;

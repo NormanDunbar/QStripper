@@ -45,6 +45,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event);
+    void focusInEvent(QFocusEvent*);
 
 private slots:
     void documentWasModified();
