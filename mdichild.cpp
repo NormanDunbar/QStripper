@@ -27,11 +27,23 @@ MdiChild::MdiChild()
     setAttribute(Qt::WA_DeleteOnClose);
 
     connect(document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
-    if (!connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
-            this, SIGNAL(FormatChanged(const QTextCharFormat &)))
-        ) QMessageBox::critical(this, "Oops", "Cannot connect slots");
+    connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
+            this, SIGNAL(FormatChanged(const QTextCharFormat &)));
+
 
 }
+
+// Reimplemented to force a call to FormatChanged() when we
+// change child windows - this makes the buttons for fonts etc 
+// update properly.
+// Unfortunately, this leaves us with an invisible cursor until we move it
+// using an arrow key (or similar). Not good. Actually, it's a QT 'feature'
+// as disabling this signal, still shows the problem.
+void MdiChild::focusInEvent(QFocusEvent*)
+{
+    emit FormatChanged(currentCharFormat());
+}
+
 
 bool MdiChild::loadFile(const QString &fileName)
 {
