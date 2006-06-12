@@ -39,6 +39,9 @@ MainWindow::MainWindow()
     readSettings();
 
     setWindowTitle(tr("QStripper Open Source Edition"));
+    
+    // Allow drops from Explorer etc.
+    setAcceptDrops(true);
 }
 
 // Slot to update the various Text Formatting Actions when the cursor moves
@@ -62,6 +65,30 @@ void MainWindow::FormatChanged(const QTextCharFormat &Format)
 }
 
 
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    // Simply accept dropped files - the openFile
+    // slot will sort them out if invalid.
+    event->acceptProposedAction();
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    // Extract a list of (dropped) filenames and  open them.
+    QList<QUrl> fileNames;
+    QString fileName;
+    QList<QUrl>::const_iterator i;
+
+    if (event->mimeData()->hasUrls()) {
+      fileNames = event->mimeData()->urls();
+       for (i = fileNames.begin(); i != fileNames.end(); i++) {
+         fileName = (*i).toLocalFile();
+         openFile(fileName);
+       }
+    }
+
+    event->acceptProposedAction();
+}
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -77,32 +104,23 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::open()
 {
     QString fileName = QFileDialog::getOpenFileName(this);
-    if (!fileName.isEmpty()) {
-        MdiChild *existing = findMdiChild(fileName);
-        if (existing) {
-            workspace->setActiveWindow(existing);
-            return;
-        }
-
-        openFile(fileName);
-
-        /*
-        MdiChild *child = createMdiChild();
-        if (child->loadFile(fileName)) {
-            // Each child has a signal when the text format changes, hook this up to
-            // our own slot so that we cah set/unset the various font formatting actions.
-            connect(child, SIGNAL(FormatChanged(const QTextCharFormat &)), this, SLOT(FormatChanged(const QTextCharFormat &)));
-            statusBar()->showMessage(tr("File loaded"), 2000);
-            child->show();
-        } else {
-            child->close();
-        }
-        */
-    }
+    openFile(fileName);
 }
 
 void MainWindow::openFile(const QString &fileName)
 {
+    // Anything to open ?
+    if (fileName.isEmpty())
+      return;
+
+    // Already open ?
+    MdiChild *existing = findMdiChild(fileName);
+    if (existing) {
+        workspace->setActiveWindow(existing);
+        return;
+    }
+
+    // Must be a new one, open it.
     MdiChild *child = createMdiChild();
     if (child->loadFile(fileName)) {
         // Each child has a signal when the text format changes, hook this up to

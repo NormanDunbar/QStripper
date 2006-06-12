@@ -29,6 +29,8 @@ class MdiChild;
 class QSignalMapper;
 class NDWorkspace;
 class QTextCharFormat;
+class QDropEvent;
+class QMimeData;
 
 class MainWindow : public QMainWindow
 {
@@ -61,6 +63,8 @@ private slots:
     void TextSuperScript();
     void FilePrint();
     void FormatChanged(const QTextCharFormat &Format);
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
 
     MdiChild *createMdiChild();
 
