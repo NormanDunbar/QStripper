@@ -27,5 +27,9 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     MainWindow mainWin;
     mainWin.show();
+
+    for (int Files = 1; Files < argc; Files++)
+      mainWin.openFile(argv[Files]);
+
     return app.exec();
 }

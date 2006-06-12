@@ -84,6 +84,9 @@ void MainWindow::open()
             return;
         }
 
+        openFile(fileName);
+
+        /*
         MdiChild *child = createMdiChild();
         if (child->loadFile(fileName)) {
             // Each child has a signal when the text format changes, hook this up to
@@ -94,6 +97,21 @@ void MainWindow::open()
         } else {
             child->close();
         }
+        */
+    }
+}
+
+void MainWindow::openFile(const QString &fileName)
+{
+    MdiChild *child = createMdiChild();
+    if (child->loadFile(fileName)) {
+        // Each child has a signal when the text format changes, hook this up to
+        // our own slot so that we cah set/unset the various font formatting actions.
+        connect(child, SIGNAL(FormatChanged(const QTextCharFormat &)), this, SLOT(FormatChanged(const QTextCharFormat &)));
+        statusBar()->showMessage(tr("File loaded"), 2000);
+        child->show();
+    } else {
+        child->close();
     }
 }
 
