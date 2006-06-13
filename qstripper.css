@@ -8,7 +8,6 @@ body {font: 80% Verdana, Arial, Helvetica, sans-serif;
       color: black;}
 
 h1 {font-size: 200%;
-    text-transform: lowercase;
     letter-spacing: 3px;
     margin: 0;
     padding: 0.66em 0 0.33em 29%;
@@ -41,23 +40,32 @@ p {line-height: 1.5;
 div#entry {margin: 2em 10% 1em 30%;
            padding: 0;}
 
-div#sidebar {float: left; 
+/*-------------------------------------------------------------*
+ * This really screws IR5.5 - it scrolls and has huge gaps :o( *
+ * Also, having a fixed position navigation box, gives a dark  *
+ * line when the content is scrolled. A bottom border which is *
+ * the same colour as the background fixes that ! (ND)         *
+ *-------------------------------------------------------------*/
+div#sidebar {position: fixed;
+             top: 5;
+             left: 5;
              width: 23%;
              margin: 2em 0 0 2%;
-             text-align: center;}
+             text-align: center;
+             border-bottom: 1px solid rgb(95%,95%,80%);}
 
 #sidebar h4 {border: 1px solid rgb(73%,73%,58%);
              border-bottom: none;
              background: rgb(90%,90%,75%);}
 
-#sidebar ul {list-style: none; 
-             margin: 0; 
+#sidebar ul {list-style: none;
+             margin: 0;
              padding: 0 0 2em;
              border: 1px solid rgb(73%,73%,58%);}
 
 #sidebar h4, #sidebar ul {margin: 0 6px 0 0;}
 
-#sidebar li {padding: 0.5em 0; 
+#sidebar li {padding: 0.5em 0;
              line-height: 1em;
              border-bottom: 1px solid rgb(84%,84%,69%);}
 
