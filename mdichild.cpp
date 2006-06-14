@@ -74,16 +74,19 @@ const int Superscript = 8;
 
 bool MdiChild::ExportText()
 {
-   QString fileName = curFile;
+   QString fileName = TXTFile;
+   if (fileName.isEmpty()) {
+     fileName = filePath(curFile) + "/" +
+                fileBasename(curFile) +
+                ".txt";
+   }
 
-   fileName = filePath(fileName) + "/" +
-              fileBasename(fileName) +
-              ".txt";
-
-   fileName = QFileDialog::getSaveFileName(this, tr("Export as plain text"), fileName, "Text Files (*.txt);;All files (*.*)");
-  // QString fileName = QFileDialog::getSaveFileName(this, tr("Export As Plain Text"), curFile);
+    fileName = QFileDialog::getSaveFileName(this, tr("Export as plain text"), fileName, "Text Files (*.txt)");
     if (fileName.isEmpty())
         return false;
+        
+    if (fileExtension(fileName).toLower() != "txt")
+        fileName += ".txt";
 
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
@@ -104,21 +107,25 @@ bool MdiChild::ExportText()
     out << toPlainText();
     QApplication::restoreOverrideCursor();
 
-    //setCurrentFile(fileName);
+    TXTFile = fileName;
     return true;
 }
 
 bool MdiChild::ExportHTML()
 {
-   QString fileName = curFile;
+   QString fileName = HTMLFile;
+   if (fileName.isEmpty()) {
+     fileName = filePath(curFile) + "/" +
+                fileBasename(curFile) +
+                ".html";
+   }
 
-   fileName = filePath(fileName) + "/" +
-              fileBasename(fileName) +
-              ".html";
-
-    fileName = QFileDialog::getSaveFileName(this, tr("Export as HTML"), fileName, "HTML Files (*.html;*.htm);;All files (*.*)");
+    fileName = QFileDialog::getSaveFileName(this, tr("Export as HTML"), fileName, "HTML Files (*.html;*.htm)");
     if (fileName.isEmpty())
         return false;
+
+    if (fileExtension(fileName).toLower() != "html")
+        fileName += ".html";
 
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
@@ -139,40 +146,49 @@ bool MdiChild::ExportHTML()
     out << toHtml();
     QApplication::restoreOverrideCursor();
 
-    //setCurrentFile(fileName);
+    HTMLFile = fileName;
     return true;
 }
 
 bool MdiChild::ExportPDF()
 {
-   QString fileName = curFile;
+   QString fileName = PDFFile;
+   if (fileName.isEmpty()) {
+     fileName = filePath(curFile) + "/" +
+                fileBasename(curFile) +
+                ".pdf";
+   }
 
-   fileName = filePath(fileName) + "/" +
-              fileBasename(fileName) +
-              ".pdf";
-
-    fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "PDF files (*.pdf);;All files (*.*)");
+    fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "PDF files (*.pdf)");
     if (fileName.isEmpty())
         return false;
+
+    if (fileExtension(fileName).toLower() != "pdf")
+        fileName += ".pdf";
 
     QPrinter Pdf(QPrinter::HighResolution);
     Pdf.setOutputFormat(QPrinter::PdfFormat);
     Pdf.setOutputFileName(fileName);
     document()->print(&Pdf);
+    PDFFile = fileName;
     return true;
 }
 
 bool MdiChild::ExportDocbook()
 {
-   QString fileName = curFile;
+   QString fileName = XMLFile;
+   if (fileName.isEmpty()) {
+     fileName = filePath(curFile) + "/" +
+                fileBasename(curFile) +
+                ".xml";
+   }
 
-   fileName = filePath(fileName) + "/" +
-              fileBasename(fileName) +
-              ".xml";
-
-    fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "XML files (*.xml);;All files (*.*)");
+    fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "XML files (*.xml)");
     if (fileName.isEmpty())
         return false;
+
+    if (fileExtension(fileName).toLower() != "xml")
+        fileName += ".xml";
 
     QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
@@ -226,6 +242,7 @@ bool MdiChild::ExportDocbook()
     out << "</article>\n";
 
     QApplication::restoreOverrideCursor();
+    XMLFile = fileName;
     return true;
 }
 
