@@ -42,6 +42,9 @@ public:
     bool FilePrint();
     QString userFriendlyCurrentFile();
     QString currentFile() { return curFile; }
+    QString fileExtension(const QString &fullFileName);
+    QString fileBasename(const QString &fullFileName);
+    QString filePath(const QString &fullFileName);
 
 protected:
     void closeEvent(QCloseEvent *event);

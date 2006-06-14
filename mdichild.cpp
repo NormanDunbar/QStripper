@@ -74,7 +74,12 @@ const int Superscript = 8;
 
 bool MdiChild::ExportText()
 {
-   static QString fileName;
+   QString fileName = curFile;
+
+   fileName = filePath(fileName) + "/" +
+              fileBasename(fileName) +
+              ".txt";
+
    fileName = QFileDialog::getSaveFileName(this, tr("Export as plain text"), fileName, "Text Files (*.txt);;All files (*.*)");
   // QString fileName = QFileDialog::getSaveFileName(this, tr("Export As Plain Text"), curFile);
     if (fileName.isEmpty())
@@ -105,7 +110,12 @@ bool MdiChild::ExportText()
 
 bool MdiChild::ExportHTML()
 {
-    static QString fileName;
+   QString fileName = curFile;
+
+   fileName = filePath(fileName) + "/" +
+              fileBasename(fileName) +
+              ".html";
+
     fileName = QFileDialog::getSaveFileName(this, tr("Export as HTML"), fileName, "HTML Files (*.html;*.htm);;All files (*.*)");
     if (fileName.isEmpty())
         return false;
@@ -135,37 +145,47 @@ bool MdiChild::ExportHTML()
 
 bool MdiChild::ExportPDF()
 {
-    static QString FileName;
-    FileName = QFileDialog::getSaveFileName(this, "Export PDF", FileName, "PDF files (*.pdf);;All files (*.*)");
-    if (FileName.isEmpty())
+   QString fileName = curFile;
+
+   fileName = filePath(fileName) + "/" +
+              fileBasename(fileName) +
+              ".pdf";
+
+    fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "PDF files (*.pdf);;All files (*.*)");
+    if (fileName.isEmpty())
         return false;
 
     QPrinter Pdf(QPrinter::HighResolution);
     Pdf.setOutputFormat(QPrinter::PdfFormat);
-    Pdf.setOutputFileName(FileName);
+    Pdf.setOutputFileName(fileName);
     document()->print(&Pdf);
     return true;
 }
 
 bool MdiChild::ExportDocbook()
 {
-    QString FileName;
-    FileName = QFileDialog::getSaveFileName(this, "Export PDF", FileName, "XML files (*.xml);;All files (*.*)");
-    if (FileName.isEmpty())
+   QString fileName = curFile;
+
+   fileName = filePath(fileName) + "/" +
+              fileBasename(fileName) +
+              ".xml";
+
+    fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "XML files (*.xml);;All files (*.*)");
+    if (fileName.isEmpty())
         return false;
 
-    QFile file(FileName);
+    QFile file(fileName);
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
         QMessageBox::warning(this, tr("QStripper"),
                              tr("Cannot write DocBook XML file %1:\n%2.")
-                             .arg(FileName)
+                             .arg(fileName)
                              .arg(file.errorString()));
         return false;
     }
 
     QTextStream out(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    
+
     // XML header first.
     out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     out << "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.2//EN\"\n";
@@ -304,4 +324,19 @@ void MdiChild::setCurrentFile(const QString &fileName)
 QString MdiChild::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();
+}
+
+QString MdiChild::fileExtension(const QString &fullFileName)
+{
+    return QFileInfo(fullFileName).suffix();
+}
+
+QString MdiChild::fileBasename(const QString &fullFileName)
+{
+    return QFileInfo(fullFileName).baseName();
+}
+
+QString MdiChild::filePath(const QString &fullFileName)
+{
+    return QFileInfo(fullFileName).path();
 }
