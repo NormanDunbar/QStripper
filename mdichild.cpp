@@ -25,6 +25,7 @@
 MdiChild::MdiChild()
 {
     setAttribute(Qt::WA_DeleteOnClose);
+    setFontPointSize(16.0);
 
     connect(document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
     connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
@@ -34,7 +35,7 @@ MdiChild::MdiChild()
 }
 
 // Reimplemented to force a call to FormatChanged() when we
-// change child windows - this makes the buttons for fonts etc 
+// change child windows - this makes the buttons for fonts etc
 // update properly.
 // Unfortunately, this leaves us with an invisible cursor until we move it
 // using an arrow key (or similar). Not good. Actually, it's a QT 'feature'
@@ -251,9 +252,13 @@ bool MdiChild::TextUnderline(const bool Checked)
 
 bool MdiChild::TextSubScript(const bool Checked)
 {
-    //QMessageBox::warning(this, "SubScript", Checked ? "Checked" : "Unchecked");
     QTextCharFormat Format = currentCharFormat();
+
     Format.setVerticalAlignment(Checked ? QTextCharFormat::AlignSubScript : QTextCharFormat::AlignNormal);
+
+    // Subscript seems to get coloured grey and made very small - fix this !
+    // Setting point size to 12.0 results in the same sized text as normal - whihc is 16.0 :o(
+    Format.setFontPointSize(12.0);
     setCurrentCharFormat(Format);
     return Checked;
 }
@@ -261,9 +266,13 @@ bool MdiChild::TextSubScript(const bool Checked)
 
 bool MdiChild::TextSuperScript(const bool Checked)
 {
-    //QMessageBox::warning(this, "SuperScript", Checked ? "Checked" : "Unchecked");
     QTextCharFormat Format = currentCharFormat();
+
     Format.setVerticalAlignment(Checked ? QTextCharFormat::AlignSuperScript : QTextCharFormat::AlignNormal);
+
+    // Superscript seems to get coloured grey and made very small - fix this !
+    // Setting point size to 12.0 results in the same sized text as normal - whihc is 16.0 :o(
+    Format.setFontPointSize(12.0);
     setCurrentCharFormat(Format);
     return Checked;
 }
