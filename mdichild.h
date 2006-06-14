@@ -62,6 +62,11 @@ private:
 
     QString curFile;
     bool isUntitled;
+    
+    QString PDFFile;
+    QString TXTFile;
+    QString XMLFile;
+    QString HTMLFile;
 };
 
 #endif
