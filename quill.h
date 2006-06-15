@@ -34,8 +34,10 @@ private:
     QString fFooter;                        // Document footer text.
     QString fText;                          // Document contents text.
     quint32 fTextLength;                    // Size of the above.
-    bool    fValid;                         // Is this a valid Quill document? 
+    bool    fValid;                         // Is this a valid Quill document?
     QString fErrorMessage;                  // What went wrong ?
+
+    quint8  translate(const quint8 c);     // Convert from QDOS to WIN chars.
 
 public :
     QuillDoc(QString FileName);

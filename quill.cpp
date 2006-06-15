@@ -80,6 +80,7 @@ QuillDoc::QuillDoc(QString FileName)
     fHeader.clear();
     for (int x = 0; ; ++x) {
        in >> Char;
+       Char = translate(Char);
        ++WhereAmI;
        if (Char == 0) break;
        fHeader.append(Char);
@@ -89,6 +90,7 @@ QuillDoc::QuillDoc(QString FileName)
     fFooter.clear();
     for (int x = 0; ; ++x) {
        in >> Char;
+       Char = translate(Char);
        ++WhereAmI;
        if (Char == 0) break;
        fFooter.append(Char);
@@ -99,6 +101,7 @@ QuillDoc::QuillDoc(QString FileName)
     bool FormatError = false;
     for (unsigned int x = WhereAmI; x < fTextLength; ++x) {
        in >> Char;
+       Char = translate(Char);
        switch (Char) {
          case 0 : // Paragraph end & reset attributes.
                   BoldOn = UnderOn = SuperOn = SubOn = false;
@@ -182,14 +185,89 @@ QuillDoc::QuillDoc(QString FileName)
                   continue;
                   break;
          case 30: continue; break;                       // Soft hyphen - ignored.
-         case 96: fText.append("&pound;"); break;     // £ for UK currency
-         case 127: fText.append("&copy;"); break;
-         default: fText.append(Char);                 // Pass through.
+         case 127: fText.append("&copy;"); break;        // (c) symbol.
+         case 128: fText.append("&euro;"); break;        // Euro symbol.
+         case '£': fText.append("&pound;"); break;       // £ for UK currency.
+         default: fText.append(Char);                    // Pass through.
        }
     }
 
      fValid = true;
      fErrorMessage = "";
+}
+
+
+//------------------------------------------------------------------------------
+// Returns a Windows character for a given QDOS character.
+//------------------------------------------------------------------------------
+quint8  QuillDoc::translate(const quint8 c)
+{
+    static quint8 Ql2Win[] = {                // From char, to char
+           127, 169,
+           128, 228,
+           129, 227,
+           130, 229,
+           131, 233,
+           132, 246,
+           133, 245,
+           134, 248,
+           135, 252,
+           136, 231,
+           137, 241,
+           138, 230,
+           139, 156,
+           140, 225,
+           141, 224,
+           142, 226,
+           143, 235,
+           144, 232,
+           145, 234,
+           146, 239,
+           147, 237,
+           148, 236,
+           149, 238,
+           150, 243,
+           151, 242,
+           152, 244,
+           153, 250,
+           154, 249,
+           155, 251,
+           156, 223,
+           157, 162,
+           158, 165,
+           159, 180,
+           160, 196,
+           161, 195,
+           162, 194,
+           163, 201,
+           164, 214,
+           165, 213,
+           166, 216,
+           167, 220,
+           168, 199,
+           169, 209,
+           170, 198,
+           171, 140,
+           172, 172,
+           173, 173,
+           174, 174,
+           175, 175,
+           176, 181,
+           177, 112,
+           178, 178,
+           179, 161,
+           180, 191,
+           181, 128,
+           182, 167,
+           183, 183,
+           184, 171,
+           185, 187,
+           186, 176,
+           187, 247};
+
+    if (c == 96) return 163;
+    if (c < 127 || c > 187) return c;
+    return (Ql2Win[ ((c - 127) * 2) + 1 ]);
 }
 
 
