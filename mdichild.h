@@ -21,6 +21,7 @@
 
 #include <QTextEdit>
 #include <QTextStream>
+#include <QTextFragment>
 
 class MdiChild : public QTextEdit
 {
@@ -59,6 +60,9 @@ signals:
 private:
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
+    
+    QString DocBookParagraph(const QTextBlock &ThisBlock);
+    QString DocBookFragment(const QTextFragment &ThisFragment);
 
     QString curFile;
     bool isUntitled;
