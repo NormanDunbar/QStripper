@@ -25,7 +25,6 @@
 MdiChild::MdiChild()
 {
     setAttribute(Qt::WA_DeleteOnClose);
-    setFontPointSize(16.0);
 
     connect(document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
     connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
@@ -199,6 +198,18 @@ bool MdiChild::ExportDocbook()
         return false;
     }
 
+    // Ask user for a title for the Article.
+    bool ok;
+
+    QString ArticleTitle= QInputDialog::getText(this,
+                                                tr("Enter DocBook Article Title"),
+                                                tr("Please enter a title for the DocBook article"),
+                                                QLineEdit::Normal, "", &ok);
+    if (!ok) {
+       ArticleTitle = "Title Here";
+    }
+
+
     QTextStream out(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -209,41 +220,85 @@ bool MdiChild::ExportDocbook()
 
     // Make this an article, or book, or ...
     out << "<article>\n";
-    out << "<title>" << "TITLE HERE" << "</title>\n";
+    out << "<title>" << ArticleTitle << "</title>\n";
 
-    // We must have at least one section ...
-    //out << "<section>\n";
-    //out << "<title>" << FileName << "</title>\n";
+    // Iterate over all text blocks in the document and process each one
+    // as a paragraph. Empty paragraphe are ignored.
+    QTextBlock tb = document()->begin();
+    while (tb.isValid()) {
+        QString Paragraph = DocBookParagraph(tb);
+        if (!Paragraph.isEmpty())
+        out << "<para>" << Paragraph << "</para>\n";
 
-    // We've got hard spaces, +/- etc in the text !
-    char Nbsp = 0xa0;
-    char PlusMinus = 0xB1;
-
-    // The content is plain paragraphs.
-    for (QTextBlock ThisBlock = document()->begin();
-                    ThisBlock != document()->end();
-                    ThisBlock = ThisBlock.next()) {
-      QString ThisPara = ThisBlock.text();
-
-      if (!ThisPara.isEmpty()) {
-         // Do this first - so we don't change &lt; to &amp;lt; !
-         ThisPara.replace(QString("&"), QString("&amp;"));
-         ThisPara.replace(QString("<"), QString("&lt;"));
-         ThisPara.replace(QString(">"), QString("&gt;"));
-         ThisPara.replace(QString("\t"), QString("    "));
-         ThisPara.replace(QString(PlusMinus), QString("&plusmn;"));
-         ThisPara.replace(QString(Nbsp), QString(" "));
-
-         out << "<para>" << ThisPara << "</para>\n\n";
-      }
+        tb = tb.next();
     }
 
-    //out << "</section>\n";
+    // Finish off the article.
     out << "</article>\n";
 
     QApplication::restoreOverrideCursor();
     XMLFile = fileName;
     return true;
+}
+
+// For each and every paragraph, iterate over each fragment of text,
+// where we build up an XML 'statement'.
+QString MdiChild::DocBookParagraph(const QTextBlock &ThisBlock)
+{
+    QString Paragraph;
+    for (QTextBlock::iterator it = ThisBlock.begin(); !it.atEnd(); it++) {
+      QTextFragment tf = it.fragment();
+      Paragraph += DocBookFragment(tf);
+    }
+
+    return Paragraph;
+}
+
+// This is where we process each paragraph's text fragments and remove
+// invalid XML characters.
+//
+// TODO : Foreign character translation isn't working yet and can cause
+//        illegal characters in the XML file.
+QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
+{
+    QTextCharFormat Format = ThisFragment.charFormat();
+    QString ThisText = ThisFragment.text();
+
+    // We've got hard spaces, +/- etc in the text to translate.
+    char Nbsp = 0xA0;
+    char PlusMinus = 0xB1;
+
+    if (!ThisText.isEmpty()) {
+         // Do '&' first - so we don't change &lt; to &amp;lt; !
+         ThisText.replace(QString("&"), QString("&amp;"));
+         ThisText.replace(QString("<"), QString("&lt;"));
+         ThisText.replace(QString(">"), QString("&gt;"));
+         ThisText.replace(QString("\t"), QString("    "));
+         ThisText.replace(QString(PlusMinus), QString("&plusmn;"));
+         ThisText.replace(QString(Nbsp), QString(" "));
+    }
+
+    // Here we try to decode what text attributes have been applied
+    // and return a suitable XML 'statment' to accomodate them.
+    if (Format.font().italic())
+       return "<emphasis>" + ThisText + "</emphasis>";
+
+    // Can't do underline in XML - why ?
+    if (Format.font().underline())
+       return "<emphasis role=\"underline\">" + ThisText + "</emphasis>";
+
+    if (Format.font().bold())
+       return "<emphasis role=\"bold\">" + ThisText + "</emphasis>";
+
+     switch (Format.verticalAlignment()) {
+       case QTextCharFormat::AlignNormal : return ThisText;
+       case QTextCharFormat::AlignSuperScript : return "<superscript>" +
+                                                       ThisText +
+                                                       "</superscript>";
+       case QTextCharFormat::AlignSubScript : return "<subscript>" +
+                                                       ThisText +
+                                                       "</supbscript>";
+     }
 }
 
 
