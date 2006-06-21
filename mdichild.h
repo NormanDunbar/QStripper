@@ -63,6 +63,7 @@ private:
     
     QString DocBookParagraph(const QTextBlock &ThisBlock);
     QString DocBookFragment(const QTextFragment &ThisFragment);
+    bool maybeSave();
 
     QString curFile;
     bool isUntitled;
