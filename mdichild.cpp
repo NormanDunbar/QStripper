@@ -269,7 +269,7 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
     char PlusMinus = 0xB1;
 
     if (!ThisText.isEmpty()) {
-         // Do '&' first - so we don't change &lt; to &amp;lt; !
+         // Do '&' first - so we don't change '&lt;' to '&amp;lt;' !
          ThisText.replace(QString("&"), QString("&amp;"));
          ThisText.replace(QString("<"), QString("&lt;"));
          ThisText.replace(QString(">"), QString("&gt;"));
@@ -283,7 +283,6 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
     if (Format.font().italic())
        return "<emphasis>" + ThisText + "</emphasis>";
 
-    // Can't do underline in XML - why ?
     if (Format.font().underline())
        return "<emphasis role=\"underline\">" + ThisText + "</emphasis>";
 
@@ -299,6 +298,8 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
                                                        ThisText +
                                                        "</supbscript>";
      }
+     
+     return ThisText;
 }
 
 
@@ -377,7 +378,29 @@ QString MdiChild::userFriendlyCurrentFile()
 
 void MdiChild::closeEvent(QCloseEvent *event)
 {
-    event->accept();
+    if (maybeSave()) {
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+
+bool MdiChild::maybeSave()
+{
+    if (document()->isModified()) {
+        int ret = QMessageBox::warning(this, tr("QStripper"),
+                     tr("'%1' has been modified.\n"
+                        "Do you want to export your changes before exiting?")
+                     .arg(userFriendlyCurrentFile()),
+                     QMessageBox::Yes | QMessageBox::Default,
+                     QMessageBox::No,
+                     QMessageBox::Cancel | QMessageBox::Escape);
+        if (ret == QMessageBox::Yes)
+            return false;
+        else if (ret == QMessageBox::Cancel)
+            return false;
+    }
+    return true;
 }
 
 void MdiChild::documentWasModified()
