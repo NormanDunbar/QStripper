@@ -1,0 +1,21 @@
+QStripper TODO list :
+---------------------
+
+B) Fix 'out of sequence' errors properly.
+E) Add better context menu to text edit area. Cut paste etc.
+E) Better HTML output.
+B) Got a funny when the first paragraph in the document is <U><B>Stuff</B></U> as the <HR> is drawn below the first paramrgaph and not under the header (whihc is blank in this case). Wierd.
+B) When using Explorer, select many files and OPEN WITH, only one opens. (Per)
+
+For Per.
+--------
+
+E) Option to display, print and export document in origininal width (cpl).
+E) Dont include hidden footers.
+E) Centring of centred text (floating centre in variable width mode).
+E) Closer tab emulation.
+E) Selectable display and print fonts; at least allow fixed font.
+E) Option to let program minimise when last document closed
+E) My only problem is that when the program first displays a document, only a tiny corner is displayed in a small window. Why not fill the page? Or is there a way I havent yet discovered?
+
+

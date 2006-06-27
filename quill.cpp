@@ -33,10 +33,10 @@ QuillDoc::QuillDoc(QString FileName)
 {
     ulong WhereAmI;
     quint8 Char;
-    bool BoldOn = false;
-    bool UnderOn = false;
-    bool SubOn = false;
-    bool SuperOn = false;
+    bool BoldOn;
+    bool UnderOn;
+    bool SubOn;
+    bool SuperOn;
     QStack<int> stack;
 
 
@@ -98,6 +98,7 @@ QuillDoc::QuillDoc(QString FileName)
 
     // Now the contents.
     fText.clear();
+    BoldOn = UnderOn = SuperOn = SubOn = false;
     bool FormatError = false;
     for (unsigned int x = WhereAmI; x < fTextLength; ++x) {
        in >> Char;
@@ -192,8 +193,8 @@ QuillDoc::QuillDoc(QString FileName)
        }
     }
 
-     fValid = true;
-     fErrorMessage = "";
+    fValid = true;
+    fErrorMessage = "";
 }
 
 
