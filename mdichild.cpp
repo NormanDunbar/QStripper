@@ -56,10 +56,9 @@ bool MdiChild::loadFile(const QString &fileName)
       return false;
     }
 
-    //setPlainText(Contents);
-    setHtml(Input->getHeader() + QString("<hr>") +
-            Input->getText() + QString("<hr>") +
-            Input->getFooter());
+    setHtml(Input->getHeader().toLatin1() + QString("<hr>") +
+            Input->getText().toLatin1() + QString("<hr>") +
+            Input->getFooter().toLatin1());
 
     delete Input;
     setCurrentFile(fileName);
@@ -99,10 +98,6 @@ bool MdiChild::ExportText()
     QTextStream out(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    //-------------------------------------------------------------------
-    // This works, but not very nicely. Need to add a method to make sure
-    // that proper HTML is generated from the Quill document.
-    //-------------------------------------------------------------------
     out << toPlainText();
     QApplication::restoreOverrideCursor();
 
@@ -214,11 +209,14 @@ bool MdiChild::ExportDocbook()
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     // XML header first.
-    out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    out << "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n";
+    out << "<!--  Commented out to stop Internet Explorer having a fit when it tries to read the XML file.\n";
+    out << "      Remove lines 2, 3 and 6 to revert to a 'proper' DocBook XML file if not using IE. Firefox is happy anyway.\n";
     out << "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.2//EN\"\n";
     out << "\"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd\">\n";
+    out << "-->\n";
 
-    // Make this an article, or book, or ...
+    // Make this an article, so get a title from the user.
     out << "<article>\n";
     out << "<title>" << ArticleTitle << "</title>\n";
 
@@ -267,6 +265,7 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
     // We've got hard spaces, +/- etc in the text to translate.
     char Nbsp = 0xA0;
     char PlusMinus = 0xB1;
+    char Euro = 0x80;
 
     if (!ThisText.isEmpty()) {
          // Do '&' first - so we don't change '&lt;' to '&amp;lt;' !
@@ -276,6 +275,7 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
          ThisText.replace(QString("\t"), QString("    "));
          ThisText.replace(QString(PlusMinus), QString("&plusmn;"));
          ThisText.replace(QString(Nbsp), QString(" "));
+         ThisText.replace(QString(Euro), QString("&euro;"));
     }
 
     // Here we try to decode what text attributes have been applied
