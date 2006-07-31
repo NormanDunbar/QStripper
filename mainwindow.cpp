@@ -127,7 +127,7 @@ void MainWindow::openFile(const QString &fileName)
         // our own slot so that we cah set/unset the various font formatting actions.
         connect(child, SIGNAL(FormatChanged(const QTextCharFormat &)), this, SLOT(FormatChanged(const QTextCharFormat &)));
         statusBar()->showMessage(tr("File loaded"), 2000);
-        child->show();
+        child->showMaximized();
     } else {
         child->close();
     }
