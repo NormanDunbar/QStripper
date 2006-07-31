@@ -209,7 +209,7 @@ bool MdiChild::ExportDocbook()
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     // XML header first.
-    out << "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n";
+    out << "<?xml version=\"1.0\" encoding=\"iso-8859-15\"?>\n";
     out << "<!--  Commented out to stop Internet Explorer having a fit when it tries to read the XML file.\n";
     out << "      Remove lines 2, 3 and 6 to revert to a 'proper' DocBook XML file if not using IE. Firefox is happy anyway.\n";
     out << "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.2//EN\"\n";
@@ -265,8 +265,33 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
     // We've got hard spaces, +/- etc in the text to translate.
     char Nbsp = 0xA0;
     char PlusMinus = 0xB1;
-    char Euro = 0x80;
+    char Euro = 0xE4;
 
+    // This could be helpful ???? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    /*
+    QString plain = "#include <QtCore>"
+    QString html = Qt::escape(plain);
+    // html == "#include &lt;QtCore&gt;"
+    
+    QString Qt::escape(const QString& plain)
+    {
+        QString rich;
+        rich.reserve(int(plain.length() * 1.1));
+        for (int i = 0; i < plain.length(); ++i) {
+            if (plain.at(i) == QLatin1Char('<'))
+                rich += QLatin1String("&lt;");
+            else if (plain.at(i) == QLatin1Char('>'))
+                rich += QLatin1String("&gt;");
+            else if (plain.at(i) == QLatin1Char('&'))
+                rich += QLatin1String("&amp;");
+            else
+                rich += plain.at(i);
+        }
+        return rich;
+    }
+
+    */
+    
     if (!ThisText.isEmpty()) {
          // Do '&' first - so we don't change '&lt;' to '&amp;lt;' !
          ThisText.replace(QString("&"), QString("&amp;"));
