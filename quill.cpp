@@ -187,7 +187,7 @@ QuillDoc::QuillDoc(QString FileName)
                   break;
          case 30: continue; break;                       // Soft hyphen - ignored.
          case 127: fText.append("&copy;"); break;        // (c) symbol.
-         case 128: fText.append("&euro;"); break;        // Euro symbol.
+         case 228: fText.append("&euro;"); break;        // Euro symbol.
          case '£': fText.append("&pound;"); break;       // £ for UK currency.
          default: fText.append(Char);                    // Pass through.
        }
@@ -266,8 +266,13 @@ quint8  QuillDoc::translate(const quint8 c)
            186, 176,
            187, 247};
 
-    if (c == 96) return 163;
+    // Unchanged characters.
     if (c < 127 || c > 187) return c;
+        
+    // Pound Sterling sign (£).       
+    if (c == 96) return 163;   
+        
+    // All the rest.
     return (Ql2Win[ ((c - 127) * 2) + 1 ]);
 }
 

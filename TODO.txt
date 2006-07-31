@@ -4,8 +4,10 @@ QStripper TODO list :
 B) Fix 'out of sequence' errors properly.
 E) Add better context menu to text edit area. Cut paste etc.
 E) Better HTML output.
-B) Got a funny when the first paragraph in the document is <U><B>Stuff</B></U> as the <HR> is drawn below the first paramrgaph and not under the header (whihc is blank in this case). Wierd.
+B) Got a funny when the first paragraph in the document is <U><B>Stuff</B></U> as the <HR> is drawn below the first paramrgaph and not under the header (which is blank in this case). Weird.
 B) When using Explorer, select many files and OPEN WITH, only one opens. (Per)
+B) When a file is modified, exporting (at least as XML) doesn't clear the modification status.
+B) Fix that bloody (XML) Euro ! QUILL=$80=128, WIN=$E4=228, ISO-8859-15=$A4 It's not displaying nor is it exporting correctly. It seems to export as $80 again. XMLSpy rejects it.
 
 For Per.
 --------
