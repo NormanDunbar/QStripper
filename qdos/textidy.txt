@@ -1,0 +1,1874 @@
+     CONTENTS
+
+
+     1.  INTRODUCTION
+
+     2.  PSION FILE FORMATS
+
+         2.1  General
+         2.2  ABACUS spreadsheets (aba)
+         2.3  ABACUS transfer files (abt)
+         2.4  ARCHIVE databases (dbf)
+         2.5  ARCHIVE Archive programs (prg)
+         2.6  ARCHIVE Archive programs (pro)
+         2.7  Archive screens (scr)
+         2.8  Easel graphics (   )
+         2.9  Quill Documents (doc)
+         2.10 Quill transfer files (qlt)
+
+     3.  PERFECTION File Format
+
+     4.  WORDSTAR File Format
+
+     5.  TEXT87 File Format
+
+     6.  WORDPLUS File Format
+
+     7.  PIPEDREAM File Format
+
+
+1.   INTRODUCTION
+
+     This document covers what I know about the file formats used by
+     a variety of packages on the QL.  Much of the information was
+     gathered as a result of the effort to get TexTIDY working
+     satisfactorily, and so there is particular emphasis on text
+     file formats.
+
+     Much of the information has been found by examination of sample
+     files.  This means that it is quite likely to be incomplete,
+     and occasionally may even be inaccurate.   Every effort has
+     been made, however, to indicate where guesses about the meaning
+     of any fields have been employed.
+
+     Further input on any file format that can be included in this
+     document will always be welcomed.  This can be either
+     corrections or additions to the information on the current
+     formats, or details of formats that are not included at all so
+     far.
+
+
+2.   PSION FILE FORMATS
+
+     This section details the file formats used by the PSION
+     packages Abacus, Archive, Easel and Quill as used on the
+     Sinclair QL.  These packages are also implemented on other
+     machines such as the OPD and PCs running MSDOS.  The layouts of
+     these files often differ across these different implementatons,
+     and where details of such differeces are knwon, they are
+     mentioned in this document.
+
+2.1  GENERAL
+
+     The PSION packages (QUILL, ARCHIVE, ABACUS and EASEL) all have
+     their own specific internal file formats optimised to the
+     particular function.  These file formats also relate to the
+     XCHANGE package which integrates QUILL, ARCHIVE, ABACUS and
+     EASEL into a single program.
+
+     There are elements common to the file formats of all the Psion
+     packages.
+
+     Table Headers
+
+     Many tables are preceeded by a standard 8 byte header.   It is
+     set up as follows:
+
+        Start Length     Description
+          0    2         Element size (in bytes)
+          2    2         Granularity for allocating further space in
+                         this table
+          4    2         Number of elements that are currently in
+                         use.
+          6    2         Number of elements that are currently
+                         allocated.
+
+     The first entry in the table appears to always be a dummy, and
+     is not be used.
+
+     INTEL/MOTOROLA differences
+
+     Please note that even where the file format is the same between
+     QL/OPD and MSDOS versions of the packages, the actual stored
+     values may not be identical.  This is because the Intel
+     architecture processors (as used on MSDOS machines)
+     byte-reverse mutli-byte numeric binary fields compared to the
+     Motorola family of processors (as used on the QL and OPD).
+     2.2  ABACUS SPREADSHEET FILES (aba)
+
+     These are the files used to hold abacus spreadsheets.  They
+     contain both the data and the formulae to be used on that data.
+
+     Note Thanks must go to Herbert Keener who derived much of the
+          information in this section from painstaking analysis of
+          Abacus files, and Ron Stewart who provided supplementary
+          information.
+
+     The Abacus file consists of a number of sections.  They are as
+     follows:
+
+          File Type identifier
+
+          File Header              This has a different layout for
+                                   OPD/QL and MSDOS Abacus versions.
+          Default Field Formats
+
+          Row Table
+
+          Column Width Table
+
+          Design Table             This has a different layout for
+                                   OPD/QL and MSDOS Abacus versions.
+
+          Free Space Table
+
+          Cell Descriptors Table \ These tables seem to be in the
+                                  }opposite order in the MSDOS form
+          String and Formulae    / of the Abacus files.
+
+
+     FILE TYPE IDENTIFIER
+
+     The first 4 characters of the file always start with the
+     characters "ABM1".
+
+
+     FILE HEADER
+
+     This file has a different layout for the OPD/QL and MSDOS
+     variants of Abacus.  This is to allow for the fact that the
+     MSDOS version can have more rows and columns than has been
+     allowed for in the OPD/QL version.
+
+     The two formats can be told apart by the fact that the MSDOS
+     version always has fixed values in bytes 5 to 16, while the
+     OPD/QL can have varying values (which are always different to
+     the MSDOS ones).
+
+
+
+
+     ----------- OPD/QL -----------
+     Offset Length  Default   Usage
+
+     0        2               Offset to String and Formulae table
+                              (relative to the end of this field)
+
+     2        2               Number of entries in the string amd
+                              formula table.
+
+     4        2               ? (No strings rounded up to $20)
+
+     6        1               Highest Number of columns used
+                              (starting from base 0)
+
+     7        1               Highest Number of rows used (starting
+                              from base 0)
+
+     8        1               ? Max Number of columns ?
+
+     9        1               ? max number of rows ?
+
+     ----------- MSDOS ------------
+     Offset Length  Default   Usage
+
+     0        2               ? Appears to be count of number of
+                              bytes of zero following.  Always has
+                              value $A0 $00
+
+     2        10              Zeroes
+
+     12       2               ?
+
+     14       2               Number of entries in string and
+                              formula area.
+
+     16       2               ? (No strings rounded up to $20!)
+
+     18       2               Highest Number of columns used
+                              (starting from base 0) - value is byte
+                              reversed.
+
+     20       2               Highest Number of rows used (starting
+                              from base 0) - value is bytes reversed
+
+     22       2               Maximum Column number allowed
+                              (starting from base 0).  This also
+                              determines the number of entries in
+                              the Column Width table.
+
+     24       2               Maximum Row number allowed (starting
+                              from base 0).   This also determines
+                              the number of entries in the Row
+                              table.
+     DEFAULT FIELD FORMATS TABLE
+
+     This starts immediately after the File Header.  This means that
+     it has  the following displacement from the start of the file:
+
+     0        1               Default for justification of text
+                              fields as follows:
+                                   0    left
+                                   1    right
+                                   2    centre
+
+     1        1               Default for justification of numeric
+                              fields as follows:
+                                   0    left
+                                   1    right
+                                   2    centre
+
+     2        1               Default for format of numeric fields.
+                              Bits 0-2 are used to indicate the
+                              format type as follows:3 indicate
+                              format type
+                                   $00  decimal
+                                   $01  exponential
+                                   $02  integer
+                                   $03  general
+                                   $04  monetary
+                                   $05  percent
+                              Bits 3-4 are used to indicate handling
+                              of negative fields as follows:
+                                   $08  brackets for minus
+                                   $10  integer for minus sign
+
+     3       1                Number of decimal places
+
+
+     ROW TABLE
+
+     This table follows the default field formats table.
+
+     This is a table of 1 byte entries, one for each possible row in
+     the spreadsheet.  The size of this table is as give in the file
+     header - remembering to add one to allow for a base value of
+     zero.  The normal number of entries are:
+               OPD/QL    255  $FE
+               MSDOS     615  $3E6
+
+     Each byte says how many entries there are in the Cell
+     Parameters table entry for this row giving string/formulae for
+     this row.
+
+     COLUMN WIDTH TABLE
+
+     This table follows the Row Table.
+
+     This is a table of 1 byte entries, one for each possible column
+     in the spreadsheet.  The size of this table is as give in the
+     file header - remembering to add one to allow for a base value
+     of zero.  The normal number of entries are:
+               OPD/QL    64   $3F
+               MSDOS     255  $$EF
+
+     Each entry gives the column width  is a series of 1 byte
+     entries that contain the column width for all possible columns.
+     This is one more than the value you set to allow for the
+     seperator character.  The default value seems to be $0B  (10
+     characters plus 1 character for the separator).
+
+
+     DESIGN TABLE
+
+     This table follows the Column Width table.
+
+     This area holds the information set that applies to the whole
+     spreadsheet.  It is effectively the information provided via
+     the Abacus Design command.
+
+     ---------- OPD/QL ------------
+
+     Offset Length  Default   Usage
+
+       0       1       1      Autocalculate on Input
+                                   0    No
+                                   1    Yes
+
+       1       1       0      Blank if Zero
+                                   0    No
+                                   1    Yes
+
+       2       1       1      Calculation order
+                                   0    Column
+                                   1    Row
+
+       3       1       0      Display columns
+                                   0    80 column
+                                        64 column
+                                        40 column
+
+       4       1       1      Form feed getween pages
+                                   0    No
+                                   1    Yes
+
+       5       1       1      Gaps between lines
+
+       6       1       66     Lines per page
+
+       7       1             Monetary symbol
+
+       8       1       80     Paper width
+
+       9       1       1      ?
+
+
+     ----------- MSDOS -------------
+
+     Offset Length  Default   Usage
+
+       0       1       1      Autocalculate on Input
+                                   0    No
+                                   1    Yes
+
+       1       1       0      Blank if Zero
+                                   0    No
+                                   1    Yes
+
+       2       1       1      Calculation order
+                                   0    Column
+                                   1    Row
+
+       3       1       1      Form feed getween pages
+                                   0    No
+                                   1    Yes
+
+       4       1       1      Gaps between lines
+
+       5       1       66     Lines per page
+
+       6       1             Monetary symbol
+
+       7       1       80     Paper width
+
+       8       1       1      Reference by Cell labels
+                                   0    No
+                                   1    Yes
+
+
+     CELL PARAMETERS TABLE
+
+     This is a table of entries describing each cell of the
+     spreadsheet that is in use.
+
+     It is organised by row order.   For each row, there is a 2 byte
+     header giving the length of the entries for each row that is in
+     use.  This allows one to quickly skip to the entries for the
+     next row used.
+
+     The entries for each row can then contain one or more cell
+     entries.   These are fixed in length, and are organised as
+     identified below.  The Cell Parameters Table is loaded by
+     column as recorded in the Row/Column table at the start of the
+     file.
+
+     Start  Length  Comment
+
+       0      1     Column Number.  The row number is derived from
+                    the position in this table in conjunction with
+                    the row usage table.
+
+       1      1     Type of entry in this cell:
+                         1    String
+                         2    value
+                         3    formulae
+
+       3      1     Format details for Numeric values/results.
+                    bits 0-2 give the representation to use:
+                         $00  decimal
+                         $01  exponential
+                         $02  integer
+                         $03  general
+                         $04  monetary
+                         $05  percent
+                    bits 3-4 give the treatment of negative values:
+                         $08  Use brackets
+                         $10  Use minus sign
+                    bits 5-7  number of decimal places (if relevant)
+
+       4       1    Justification
+                         0    Left
+                         1    Numeric centre
+                         2    Numeric right
+                         4    Text Centre
+                         8    Text Right
+
+       5       2    String/formulae ID.  This is effectively the
+                    position in the string/Formulae Table + 13 (why
+                    13 ?)
+
+       7       8    Floating point value.  Stored in IEEE 64 bit
+                    format.  The IEEE 64 bit format is structured as
+                    follows:
+
+                    1  bit    sign-bit (set for negative numbers)
+                    11 bits   exponent.  The exponent is biased by
+                              a value of 1023.
+                    52 bits   mantissa.   There is an implicit bit
+                              at the start of the mantissa that is
+                              always assumed to be set to 1 giving
+                              an effective size of 53 bits.
+
+                    The IEEE format can hold numbers to 15 or 16
+                    significant digits in the range:
+                         +/- 10E-307 to +/- 10E308
+
+     FREE SPACE AREA
+
+     ??? Is this always present ???
+
+     This appears to always be 32 bytes in size and zero filled.
+
+
+     STRINGS AND FORMULAE
+
+     This is a variable length table.   Its start can be derived
+     from the address in the file header.
+
+     It consists of a number of variable length entries.  All
+     entries start with a 5 byte header of the form:
+
+     Start  Length  Comment
+
+      0        1    Length of the entry.  Count does not include
+                    terminating NULL byte.
+
+      1        1    ? Entry type - always seems to be 1
+
+      2        1    ? Always seems to be 0
+
+      3        2    Number of bytes in formulae/string for this
+                    entry (seems to always be 4 less than the value
+                    in bytes 0-1.
+
+     The detail then varies according to the type of the entry.
+
+     Strings
+
+     These are simply stored as plain text
+
+     Formulae
+
+     These are stored in a tokenised form.  The tokens known are as
+     listed below.  It will be noted that there are some missing
+     values in the sequence, so it quite possible that this list is
+     not complete.
+
+     Operator Tokens  (1 byte)
+
+     $01       <
+     $02       <=
+     $03       >
+     $04       >=
+     $05       <>
+     $06       =
+     $07       +
+     $08       -
+     $09       *
+     $0a       /
+     $0b       ^
+     $0c       unary -
+     $0d       AND
+     $0e       OR
+     $0f       NOT
+
+
+
+     Seperator Tokens  (1 byte)
+
+     $10       (
+     $11       TO (for string slicing)
+     $12       )    (not sure of this one)
+     $13       ,
+     $14       end of formulae
+     $15       A floating point value (8 bytes) follows
+     $16       A string parameter follows.  It is stored as a single
+               byte giving length, followed by the string text.
+     $17       Expression follows
+
+
+     Function Tokens   (1 byte)
+
+     $1E       ABS
+     $1F       DEG
+     $20       LEN
+     $21       RAD
+     $22       ATN
+     $23       CODE
+     $24       COS
+     $25       EXP
+     $26       INT
+     $27       LN
+     $28       PI
+     $29       SGN
+     $2A       SQR
+     $2B       TAN
+     $2C       VAL
+     $2D       SIN
+     $2E       INSTR
+     $2F       ?
+     $30       CHR
+     $31       STR
+     $32       REPT
+     $33       MONTH
+     $34       DATE
+     $35       DAYS
+     $36       TIME
+     $37       ?
+     $38       ?
+     $39       ?
+     $3A       ?
+     $3B       ?
+     $3C       IF
+     $3D       WIDTH
+     $3E       ASKN
+     $3F       INDEX
+     $40       COL
+     $41       ROW
+     $42       ASKT
+     $43       SUM
+     $44       AVE
+     $45       ?
+     $46       MAX
+     $47       LOOKUP
+     $48       NPV
+     $49       IRR
+     $4A       MIN
+
+     $4B       ?
+     $4C       ?
+     $4D       ?
+     $4E       ?
+     $4F       ?
+
+     $50       Cell Reference (Relative)     (5 bytes)
+               This is followed by 4 parameter bytes as follows
+                    0-1  Relative Column
+                    2-3  Relative Row
+
+     $51       Cell Reference (Absolute)     (5 bytes)
+               This is followed by 4 parameter bytes as follows
+                    0-1  Column Number
+                    2-3s Row Number
+
+     $52       ?
+
+     $53       ?
+
+     $54       ?
+
+     $55       ?
+
+     $56       Range Reference (Relative)    (9 bytes)
+               This is followed by 8 parameter bytes as follows
+                    0-1  Start Column
+                    2-3  Start Row
+                    4-5  End Column
+                    6-7  End Row
+
+     NOTE.   It appears that there should be an "Ansolute Range
+     Reference" - is this possible?
+
+     2.3  ABACUS TRANSFER FILES
+
+     This section is based on information originally supplied by
+     Psion (I beleive) that was then posted to Compuserve in 1993.
+
+     Purpose of transfer files
+
+     To allow a spreadsheet to be passed between machines with
+     different implementations of ABACUS, without information loss.
+     This is different from export files where the formulae and
+     attributes of a spreadsheet is lost.
+
+     To allow a spreadsheet file to be sent down a seven bit link
+     without information loss. A virtual (IBM PC in reality)
+     character set is used to allow correct handling of foreign
+     characters. Characters with bit 7  set are represented by a hex
+     code preceded by a ^, e.g. a accute accented 'e' is represented
+     by ^82. This scheme is used to represent the monatory value
+     symbol and strings.
+
+     Restrictions and information loss using transfer files
+
+     Any password the spreadsheet may have is lost in a transfer
+     file.
+
+     When moving a large model spreadsheet with protected cells into
+     ABACUS that does not support these, this information about the
+     cells will be lost.
+
+     The characters used for monatory values is not mapped so there
+     may be hash/pound type problems.
+
+     A large spreadsheet may fail when moved into a small grid
+     version of ABACUS or a system with little memory available. In
+     this case ABACUS will reinitialise.
+
+     If a formulae contains a function that is not known by the
+     receiving ABACUS, the spreadsheet being loaded will be rejected
+     and ABACUS will reinitialise. This will also be the case when
+     formulas containing external file references are loaded into a
+     small model ABACUS.
+
+     A "_abt" file turns out to be about 1/3 bigger than the
+     equivalent "_aba" file for the fourier transform example, and
+     for a small sales/costs/profits job turns out to be slightly
+     smaller than the "_aba" file.
+
+     The values of formulated numeric and text cells are stored even
+     though they could be recalculated because:
+
+       -  this is the way the regular load operates
+       -  a spreadsheet full of askns etc can be loaded with
+          original values
+       -  its easier to program, less extensive renumbering of
+          formulae required.
+
+
+     Spreadsheet transfer filenames and user interface
+
+     The default extension of an ABACUS transfer file is "_abt".
+     Transfer files are saves / loaded under the transfer option of
+     the files command.
+
+
+     The overall structure of an ABACUS transfer file
+
+     A transfer file is a line structured ASCII file, each line
+     being terminated by a CR (ASCII 13) character.
+
+     The first line contains four character that denotes the file
+     type. These are "TAB0" (for transfer ABACUS file version 0).
+
+     Then follow sections for:
+
+          Global attributes of spreadsheet.
+          Column width information.
+          Public grid section declarations.
+          Spreadsheet grid structure and content.
+          Master formulae and text table.
+
+     Cell references, numeric values and string in a transfer file
+
+     Integers in the transfer file represents 16 bit values and are
+     stored as signed integers, e.g. "-1" is -1 or 65535.
+
+     Column referencesis a transfer file consisting of two
+     alphabetic characters, the first of which is a space if the
+     column denoted is less than 27, otherwise these references are
+     exactly as seen on the grid.
+
+          eg.  " A" is column A
+               "AA" is column AA
+
+     Row references consist of an integer that gives the row no. The
+     first row number is alway 1.
+
+     Cell references consists of a column reference followed by a
+     row reference.
+
+          eg.  " A1"     is cell A1
+               "BL23"    is cell BL23
+
+     Floating point no. are stored in the same form that ABACUS uses
+     for exporting them, i.e. dtob(double,3,0,buffer,20). They are
+     always delimited by a end of line.
+
+     String text is always stored on a line by itself and is
+     delimited by the end of line.
+
+          e.g. "hello"   is stored as   hello<CR>
+
+
+     Global attributes of spreadsheet
+
+     These attributes are stored on two lines of the transfer file.
+     The first line contains 11 characters which are as follows:
+
+     <L|R|C>             text justification type (left/right/center)
+     <L|R|C>             numeric justification type (as above)
+     <(|_>               brackets for negative values or not
+     <I|D|E|M|%|G>       integer, decimal, exponent, monatory,
+                         percent, general
+     <Y|N>               auto calculate On/Off
+     <Y|N>               blank if zero On/Off
+     <R|C>               calculation order, row or column
+     <4|6|8>             display setting: 40, 64 or 80 columns
+     <Y|N>               form feeds On/Off
+     <n>                 gap size, single ASCII digit
+     <c>                 monetary symbol char
+
+     e.g. RL_IYNR8Y2$
+
+     The second line consists of three integers separated by commas,
+     which denote the default no. of decimal places, the no. of
+     lines per page, and the printer line width, e.g.  2,66,80
+
+     Column width information
+
+     The first line in this section contains an integer giving the
+     no. of following column widths. The column widhts then folloow
+     as integers one per line, for the consequtive columns.
+
+     e.g.
+          255
+          11   this is the width of column A
+          ...  another 254 lines of column widths
+
+     Public grid section declarations
+
+     The first line contains an integer which gives the number of
+     declarations given in this spreadsheet.
+
+     If the spreadsheet saved does not contain publically accessable
+     grid sections, this section consists of a line with an integer
+     value of 0.
+
+     If the ABACUS implementation loading this spreadsheet file
+     cannot support public spreadsheet sections, it uses the integer
+     in the first line as a count of the number of entries to skip
+     before the spreadsheet grid occurs. It should skip 2 lines per
+     entry.
+
+          Each entry consists of two lines which are:
+
+               The name of the grid section
+               The cell ref. of the top left cell, row or col., no.
+               of cells
+
+          e.g.
+
+               1              1 public grid section
+               bignose             name of grid section
+               BL230 C10           a column of 10 cells starting at
+               BL230
+
+
+     Spreadsheet grid structure and content
+
+     The spreadsheet grid is saved by rows with the value and
+     attributes of each used cell in the row being recorded.
+
+     The section starts with two integers on a line separated by a
+     comma which give the maximum column abnd the maximum row of the
+     grid being used. From this the loading programs can determine
+     whether the grid to be transferred will fit in the particular
+     version of ABACUS being used.
+
+     Next comes a single integer on a line which gives the no. of
+     rows that contain non empty cells.
+
+     Then for each row of the spreadsheet comes:
+
+          two integers on a line giving the row number of this row
+          and the no. of used cells in this row.
+
+     now for each cell in the row comes:
+
+          the column reference is a standard two character column
+          id, e.g. " A"for column A,              "BL" for column
+          BL.
+
+          the attribute are four characters followed by a decimal
+          integer as follows:
+
+               <F|G|N|S>      cell type, formula/litt, num/str
+                              F = formulated num
+                              G = formulated str
+                              N = literal num
+                              S = literal str
+
+               <L|C|R>        numeric justification
+               <L|C|R>        text justification
+               <Y|N>          cell protected, Y = Yes
+               <(|_>          negative value in brackets flag
+               <I|D|E|M|%|G>  numeric format
+               n         integer, no. of decimal places
+
+          e.g.
+               BLFLRY(M10
+
+          a line containing the current value of the cell, if the
+          above cell type was a literal      or formulated string
+          then this line contains a string reference no. otherwise
+          it   contains a floating point no. in ASCII form.
+
+          if the cell type indicated a formulated value then the
+          next line contains a formulae reference no., otherwise
+          this line is absent.
+
+               e.g. 2
+
+     Thus an example spreadsheet grid in transfer file form might
+     look as follows:
+
+          2,1            range of grid is A1:B2
+          2              2 rows comming up
+          1,3            here is row 1 with 3 cells in it
+           AFR_G0        col A, f(n), right justify, general form,
+                         neg id '-', zero d.p.s
+          5              current value of cell is 5
+          20             uses formula no. 20 to calculate value of
+                         this cell
+           BFR_G0        col B, f(n), e.t.c.
+          1              current value 1
+          22             uses formula no. 21 to calculate value of
+                         this cell
+          2,1            here is row 2 with 1 cell in it
+           AFR_G0        col A, f(n), right justify, general form,
+                         neg id '-', zero d.p.s
+          -0.95892427466314   current value of cell is ...
+          23             uses formula no. 23 to calculate value of
+                         this cell
+
+
+
+     Master formulae and text table
+
+     The master formulae and text are stored in this section. The
+     first entry in this table is described as formulae/text no. 20
+     by reference within the grid, the second as no. 21, e.t.c.
+
+     The table starts with a single integer on a line giving the no.
+     of formulae/text entries in the table.
+
+     Then for each formulae/text there follows:
+
+          a line of the form <F|T>n,n  where
+               <F|T>     indicates F = formula,  T = text
+               n,        the no. of references in the grid for
+                         formula or text
+               n         the no. of bytes required to store formula
+                         or text
+
+          then if the entry was text ('T') the next line contains
+          the characters of the text delimited by a <CR>, or if the
+          entry was a formula ('F') the following lines describe the
+          formula in a way described in the next section.
+
+
+     The representation of formulae in the transfer file
+
+     A formula consists of a number of piece identifiers that
+     indicate what the type of the following data is, or in the case
+     of operators, what the operator itself is. A list of the
+     possible piece identifiers are:
+
+     OPERATORS:
+
+     '<' '<=' '>' '>=' '<>' '=' '+' '-' '*' '/' '(' ')'
+
+     '~'  unary minus
+     '&'  logical AND
+     '|'  logical OR
+     '!'  logical NOT
+     ''  "to" for use in string slicing
+     ','  comma
+
+
+     LITERALS:
+
+     'N'  floating point literal, to be followed by f.p.num. on next
+          line
+     'S'  string literal, to be followed by string text on next line
+
+
+     CELL REFERENCES:
+
+     'C'  relative cell reference, followed by n,m where n is the
+          signed column offset, and m is the signed row offset.
+          Delimited by spaces.
+     '$'  absolute cell reference, followed by a cell reference.
+          Delimited by space.
+     ':'  relative range reference, followed by n,m:p,o where n,m
+          and p,o are relative cell references for the top left and
+          bottom right of the range. Delimited by a space.
+
+     '['  external range reference, followed by x,y giving the
+          position where the external range is mapped on the current
+          grid, and then on a separate line "file;name" delimited by
+          the end of line giving the file the external range is to
+          be found in and the name it is declared under.
+
+
+     OTHERS:
+
+     'F'  function application, text of function delimited by '('
+          follows.
+     '.'  end of formula.
+
+
+     Here is an example master formula/text table:
+
+     4              4 formulas/text in table
+     F1,17          formula 20, referenced onced, requires 17 bytes
+                    of storage
+     N              numeric value
+     1              floating point no. 1
+     + C0,0         plus, relative cell ref. C[+0]R[+0]. Formula is
+                    "1+C[+0]R[+0]"
+     F1,17          formula 21, referenced onced, requires 17 bytes
+                    of storage
+     + C-1,1        plus, relative cell ref. C[-1]R[+1]. Formula is
+                    "1+C[-1]R[+1]"
+     F1,17          formula 22
+     N              numeric value
+     1              floating point no. 1
+     + C-2,2        formula is "1+C[-2]R[+2]"
+     F1,8           formula 23, referenced once, requires 8 bytes of
+                    storage.
+     Fsin(C0,-1 ) . function "sin",C[+0]R[-1]. Formula is
+                    "sin(C[+0]R[-1])".
+
+
+     2.4  ARCHIVE DATABASE FILES (dbf)
+
+     On the QL and OPD the data and all indexes are held in a single
+     file.   On the DOS implementation, then the indexes are held in
+     separate index (_idx) files.
+
+     The following is a tentaive first stab at the QL/OPD layouts.
+
+
+     File Header
+
+     Offset  Length Usage
+        0      2    Control record length ($14).
+        2      8    File Id:
+                         QL:  'vrm1dbf0'
+                         OPD: 'vrm1dbf0'
+                         DOS
+       10      4    Size of the data area + control area
+       14      2    Size of the Index table
+       16      2    Size of the Free Space table
+       18      2    Size of the structure table
+
+
+     Data Area
+
+     This immediately follows the text area.  Each record is
+     variable length.  There may be gaps between records, and if so
+     the data in these gaps is redundant.
+
+     All numeric fields are held at the start of the record (as 6
+     byte floating point values) in the order in which they were
+     declared at file creation time.
+
+     The string fields then follow, each terminated with a NULL
+     byte.  If a string field is empty, its NULL byte terminator is
+     still there.
+
+     Index Table
+
+          0    8 bytes standard header
+
+          8+   Entries for each record.  The size of each entry is
+               variable according to the number of sort fields.
+
+               6    bytes per entry
+
+               8    bytes per sort field
+
+     Free Space Table
+
+          0    8 bytes standard header
+
+          8+   n byte entries describing the free areas withing the
+               data part of the file.
+
+
+     Structure Table
+
+          0    8 bytes standard header
+
+          8+   20 byte entries describing each field in the order
+               that they were created.
+
+     2.5  ARCHIVE PROGRAM FILES (prg)
+
+     This is the sort of file that is created by Archive when you
+     use the SAVE command, and can be reloaded using the LOAd
+     command.
+
+     These files are simple text files, with each line terminated by
+     the CR/LF combination.   Any indentation displayed by the
+     Archive program editor will have been removed.
+
+     It has been found that Archive will also accept files that have
+     lines terminating in only the LF character.  This means that
+     any standard QL program editor can be used to create and/or
+     alter Archive programs.   Also, the presence of indentation,
+     etc, appears to be irrelevant (Archive actually removes when it
+     loads the file).
+     2.6  ARCHIVE PROGRAM FILES (pro)
+
+     This is the sort of file that is created by Archive when you
+     use the SAVE command with the OBJECT keyword, and can be
+     reloaded using the LOAd command with the OBJECT keyword.
+
+     This is a form of the Archive program that is already converted
+     to Archives internal memory format.  It therefore loads
+     significantly faster.   Such files are normally larger than the
+     corresponding 'prg' files.
+
+     It has been found that such files are in principle version
+     specific so that you cannot use this format to transfer files
+     between different versions of Archive, even on the same
+     machine.
+
+     2.7  ARCHIVE SCREEN FORMAT FILES  (scn)
+
+     These are the files used to hold screen formats for use by
+     Archive.  They are created using the SSAVE command, and loaded
+     using the SLOAD command.
+
+     Offset Length  Usage
+
+      0       4     File Type indentifier
+                         QL:  'dbs2'
+                         OPD: 'dbs2'
+                         DOS: 'dbs0'
+
+     There are then 25 variable length entries describing the
+     contents of each screen line.  Line entries are formatted as
+     follows:
+
+     Offset  Length      Usage
+
+       0       2         Offset to next line entry (from end of this
+                         field).   This filed is not byte-reversed
+                         under DOS.
+
+       2       2         Number of bytes in this entry that are
+                         relevant.  Entry is byte-reversed for DOS.
+
+       4+      ii        Entry giving display information for this
+                         line.  The entry can contain the following
+                         imbedded control sequences:
+
+                              $01ii     Sets ink colour.  New value
+                                        is $ii.
+                              $02pp     Sets paper colour.  New
+                                        value is $pp.
+                              $04ccnn   Repeat $nn times the
+                                        character $cc.
+
+     Field Name Table
+
+     This table defines the details of the input/output fields
+     associated with this screen.
+
+     Offset  Length  default  Usage
+
+       0       2              Size of Field Name table that follows
+                              this field.   This field is not
+                              byte-reversed under DOS.
+       2       2       36     Element size       ) Standard
+       4       2        1     Grarnularity       ) Psion
+       6       2              Elements used      ) Table
+       8       2              Elements allocated ) Header
+
+      10+      36n            Entries describing each field name in
+                              turn.  The format of the entries is:
+
+          Offset  Length      Usage
+            0       26        Field Name.  Space filled if
+                              necessary.
+
+           27        1        Not used. Seems to set according to
+                              system as follows:
+                                   QL:  space
+                                   OPD: space
+                                   DOS: 0
+
+           28        1        Column in which field starts
+           29        1        Row in which field start
+
+           30        1        Length of field
+
+           31        1        Paper Colour
+
+           32        1        Ink colour
+
+     The file is finally terminated with 2 bytes with value $FF.
+     2.8 EASEL GRAPHICS FILES (   )
+
+     No information at present
+     2.9  QUILL DOCUMENT FILES  (doc)
+
+     These files hold a QUILL document.
+
+     If the file size is less than 2048, then it is rounded up to
+     this size.  If larger than this, then it is rounded up to the
+     next multiple of 512 bytes.
+
+
+     File Header
+
+     The start of the file always contains a standard header that
+     identifies the file type, and locates the various areas within
+     the file.
+
+     Offset  Length  Default  Usage
+       0       2       20     Header length
+
+       2       8              File indentifier
+                                   QL:  'vrm1qdf0'
+                                   OPD: 'vrm1qdf0'
+                                   DOS: 'vrm1qdf0'
+
+      10       4              Length of text area (including file
+                              header).   Acts as a pointer to the
+                              start of the paragraph table.
+
+      14       2              Length of the Paragraph Table
+                              (including header).  Acts as a pointer
+                              to the Free Space table.
+
+      16       2              Length of the Free Space Table
+                              (including header).  Acts as a pointer
+                              to the Layout Table.
+
+      18       2              Length of the Layout table.  There may
+                              well be additional free space between
+                              the end of the Layout table and the
+                              end-of-file.  This extra area can
+                              contain any random data.
+
+
+     Text Area
+
+     This area holds the text that makes up the main body of the
+     document.
+
+     The first two 'paragraphs' are always the Header and Footer
+     text (if any) of the document.
+
+     The text is held in simple ASCII format, but with imbedded
+     control characters.  The control characters are as follows:
+          Hex       Description
+
+          00        End of Paragraph/Hard Newline.  This resets all
+                    highlighting attributes to 'off'.
+
+          09        Tab. Tab positions are determined using the Tab
+                    tables (as described later).
+
+          0F        Bold toggle.
+
+          10        Underline toggle.
+
+          11        Subscript toggle.
+
+          12        Superscript toggle.
+
+          1E        Soft Hyphen.
+
+
+     PARAGRAPH TABLE
+
+     This table is used to control attributes that apply to a whole
+     paragraph.  Entries 1 and 2 refer to the header/footer
+     respectively.  As far as can be told these entries are
+     irrelevant.
+
+     Offset    Length    Default   Descrip[tion
+
+       0        2        14        Element size        ) Standard
+       2        2         8        Granularity         ) Table
+       4        2                  Elements used       ) Header
+       6        2                  Elements allocated  )
+
+       8+      14                  Paragraph descriptors in the
+                                   following format:
+
+          Offset  Length Default   Usage
+
+           0        4              Offset from start of file to the
+                                   text making up this paragraph.
+
+           4        2              The length of the paragraph.
+                                   This length includes the NULL
+                                   byte that terminates the
+                                   paragraph text.
+
+           6        1              ??
+
+           7        1     9        Left Margin.  Starts at 0
+
+           8        1    14        Indent Margin
+
+           9        1    72        Right Margin
+
+          10        1     0        Justification
+                                           QL     MSDOS
+                                   Left     0       4
+                                   Centre   1       5
+                                   Right    2       6
+
+                                   It appears line-spacing is
+                                   encoded in top 4 bitsd for MSDOS.
+
+          11        1              Tab Table entry that applies to
+                                   this paragraph.
+
+          12        2     1        ?
+
+
+     FREE SPACE TABLE
+
+     This entry never seems to have anything relevant in it, and is
+     always the same size.  This may mean that it is no longer used,
+     and is a hangover from an earlier version of Quill.
+
+     Offset  Length Default   Usage
+        0      2       6      Element size        }    Standard
+        2      2       4      Granularity         }    Psion
+        4      2       0      Elements used       }    Table
+        6      2       4      Elements Allocated  }    Header
+
+
+     LAYOUT TABLE
+
+     This table has a fixed part, and is then followed by a variable
+     number of tab entries.  The fixed part seems to vary between
+     the QL/OPD and the MSDOS implementations.
+
+     QL and OPD
+
+     Offset  Length Default   Usage
+       0       1       6      Bottom Margin
+       1       1              Display Mode
+                                   0 = 80 character mode
+                                   1 = 40 character mode
+                                   2 = 64 character mode
+       2       1       0      Line Gap
+       3       1      66      Page length
+       4       1       1      Start page
+       5       1       0      Colour of type
+                                   0 = Green
+                                   1 = White
+       6       1       6      Top (Upper) Margin
+       7       1       0      ?
+       8       2              Word Count
+      10       2              Max size of tab area
+      12       2              Size of tab area used
+      14       1       0      Header flag
+                                   0 = None
+                                   1 = Left Justified
+                                   2 = Centre justified
+                                   3 = Right justified
+      15       1       2      Footer flag
+      16       1       2      Header Margin
+      17       1       2      Footer Margin
+      18       1       0      Header bold flag
+                                   0 = Normal
+                                   1 = Bold
+      19       1       1      Footer Bold flag
+      20+ variable       Tab Entries
+
+
+     MSDOS
+
+     Offset  Length Default   Usage
+       0       1       6      Bottom Margin
+       1       1       0      Line Gap
+       2       1      66      Page length
+       3       1       1      Start page
+       4       1       6      Top (Upper) Margin
+       5       1       0      ?
+       6       1       0      ?
+       7       1       0      ?         Zeros??
+       8       1       0      ?
+       9       1       1      Flag - MUST be 1 for some reason
+      10       2              Word Count
+      12       2              Max Size of Tab Area
+      14       2              Size of Tab area used
+      16       1       0      Header flag
+                                   0 = None
+                                   1 = Left Justified
+                                   2 = Centre justified
+                                   3 = Right justified
+      17       1       2      Footer flag
+      18       1       2      Header Margin
+      19       1       2      Footer Margin
+      20       1       0      Header bold flag
+                                   0 = Normal
+                                   1 = Bold
+      21       1       1      Footer Bold flag
+      22+ variable            Tab Entries
+
+     Tab Entries
+
+     Offset  Length Usage
+       0       1    Tab Entry Number }   zero if end
+       1       1    Tab Entry Length }   of tab entries
+       2+      2    Tab entries repeated to make up length
+          Offset  Length Usage
+            0       1    Tab position
+            1       1    Tab type
+                              0 = Left Justify
+                              1 = Centre Justify
+                              2 = Right Justify
+     2.10 QUILL TRANSFER FILES (_qlt)
+
+     This section is based on information that originated with
+     Psion, and was posted to Compuserve QL area in 1993.
+
+     The format of transferable QUILL document files
+
+     Written by Peter, PSION  - 10/09/85
+
+     Purpose of transfer files
+
+     To allow documents to be passed between machines with different
+     implementations of QUILL, without information loss. This is
+     different from export files where the paragraph attributes and
+     page structure of a document is lost.
+
+     To allow a document file to be sent down a seven bit link
+     without information loss. All the the bytes in a document
+     transfer file are 7 bit ASCII. A virtual (IBM PC in reality)
+     character set is used to allow correct handling of foreign
+     characters. Characters with bit 7  set are represented by a hex
+     code preceded by a ^, e.g. a accute accented 'e' is represented
+     by ^82.
+
+
+     Restrictions and information loss using transfer files
+
+     When transfering from a larger model of QUILL to a smaller one,
+
+     1.   if a paragraph is too big the document will rejected
+
+     2.   if unknown formatting codes are included they will be
+          ignored or replaced with question marks.
+
+
+     Document transfer filenames and user interface
+
+     The default extension of a QUILL transfer file is "_qlt".
+     Transfer files are saved / loaded under the <FILES> <TRANSFER>
+     option.
+
+
+     The overall structure of a QUILL transfer file
+
+     A transfer file is a line structured ASCII file, each line
+     being terminated by a <CR> (ASCII 13) character.
+
+     The first line contains four characters that denote the file
+     type. These are "TQL0" (for transfer QUILL file version zero).
+
+
+     Global document characteristics
+
+     sz, wds, fpg, bm, um, gp, pgsz     where
+                         sz   = Storage used for tabs in bytes
+                         wds  = No. of words in document
+                         fpg  = First page no.
+                         bm   = Bottom margin
+                         um   = Upper margin
+                         gp   = Gaps between lines
+                         pgsz = Page size
+
+     <8|6|4><G|W>        Screen mode 80/64/40 columns, type colour
+                         GREEN or WHITE
+
+     <N|L|R|C><Y|N>n     Header details:
+                              Justification of header
+                              N = No header, rest of line is absent
+                              L = left,
+                              R = right,
+                              C = centre justified
+                         Y or N for header bold or not
+                         n is header margin
+
+     <N|L|R|C><Y|N>n     Footer details in same form as for header
+     n,m,<L|R|C|D>t ...  Tabset definitions:
+                         n = integer tabset identifier
+                         m = integer no. of tabs in this tabset
+                         <L|R|C|D>  = left/right/centre/decimal tab
+                         type
+                         t = integer tab column position
+     ....                More lines of tabsets terminated by a
+     0                        TAB END line
+
+
+
+     Characteristics and content of each paragraph
+
+     First there appears a line with a single integer which denotds
+     the number of following paragraphs.
+
+     n                        No. of paragraphs in document
+
+     Then for each paragraph there follows:
+
+     n,<Y|N><Y|N><Y|N><Y|N><Y|N><Y|N><Y|N><L|C|R><Y|N><0|1|2>
+     where
+          n         number of lines in paragraph
+          <Y|N>     flags if Page break in paragraph
+          <Y|N>     flags if Left margin changed in paragraph
+          <Y|N>     flags if right margin changed in paragraph
+          <Y|N>     flags if indent margin changed in paragraph
+          <Y|N>     flags if justification changed in paragraph
+          <Y|N>     flags if tabs changed in paragraph
+          <Y|N>     flags if line spacing not default
+          <L|R|C>   gives justification of paragraph
+                    L,R,C = left,right,centre.
+
+          <0|1|2>   specifies the paragraph line gap
+     lm, rm, im, tb      where     lm   left margin value
+                                   rm   right margin value
+                                   im   indent margin value
+                                   tb   tabset ident
+
+     The text follows arbitrarily split into lines <= 80 chars with
+     @ch representing control type characters as follows:
+
+          @@   represents '@'
+          @T   represents TAB
+          @-   represents SOFT_HYPHEN
+          @B   represents BOLD_FLAG
+          @_   represents UNDERLINE_FLAG
+          @L   represents SUBSCRIPT_FLAG
+          @H   represents SUPSCRIPT_FLAG
+
+          ^<hexnumber>   is another notation of representing a
+                         character, eg. ^B1 representing '1'.
+                         This notation will on 8 bit characters and
+                         various symbols.
+
+     Lines are terminated with <CR> (Carriage Return) which is
+     ignored in interpreting these lines. The end of the paragraph
+     text is delimited with a '@.' symbol.
+
+
+     N.B.:
+
+     Note that the first two paragraphs in the qlt file contain the
+     text for the header and the footer. The attributes of these
+     paragraphs have arbitrary values (e.g. the no. of lines per
+     paragraph have = 8192).
+
+     Also  paragraphs that have a line count of zero have there line
+     count recalculated on loading.
+
+3.   PERFECTION FILE FORMAT
+
+     PERFECTION is the Word Processor/Text Editor introduced by
+     Digital Precision.
+
+
+     Offset Length  Usage
+
+       0       4    File Header Magic Number.
+                    The values required are 255,1,'C','X'
+
+       4       2    Length of name for Printer device
+       6       30   Name of printer device (e.g. SER1) padded to
+                    required length if necessary.
+
+      36     17*16  Entries to define attributes.  Each consists of
+                    1 byte length, followed by 15 bytes containing
+                    the relevant string (padded if necessary).
+
+                    01.  underline on
+                    02.  underline off
+                    03.  bold on
+                    04.  bold off
+                    05.  high (superscript) on
+                    06.  low (subscript) on
+                    07.  italic on
+                    08.  high off
+                    09.  low off
+                    10.  italic off
+                    11.  end of line
+                    12.  printer initialization
+                    13.  end of page
+                    14.  strip 0 string
+                    15.  strip 1 string
+                    16.  strip 2 string
+                    17.  strip 3 string
+
+          16 * 16   Translates.  Each entry consists of 1 byte
+                    indicating length of substituting string, 1 byte
+                    giving character to be substituted, and 14 bytes
+                    giving substitute string (padded if necessary).
+
+
+4.   WORDSTAR FILE FORMAT
+
+     The format described here is that used by WORDSTAR versions up
+     to and including version 3.  From Version 4 onwards new, more
+     complex, file formats were introduced.
+
+     WORDSTAR uses a simple text stream with command information
+     encoded into it.  In addition, lines can start with WORDSTAR
+     "Dot" commands to provide extra facilities.
+
+     The high-order bit of the final character of each word is set
+     on when it occurs in a line ending with a "soft" or
+     word-wrapped carrigate return/line feed combination.
+
+     Justification is represented by inserting "phantom spaces" as
+     required.  WORDSTAR does not store the original settings
+     (except as entered via dot commands bya the user).
+
+     COMMAND USED IN PAIRS
+
+     02        Bold Print
+     04        Double Strike
+     09        Hard Tab.  Normally replaced by spaces in document
+     mode.
+     0A        Line feed.  Only present in isolation if user enters
+     specifically.
+     0B        Odd/Even page offset for headers and footers
+     0C        Page break (also done via dot command)
+     10        NOT USED!
+     13        Underline
+     14        Superscript
+     15        NOT USED
+     16        Subscript
+     18        Strikeout
+     1A        End-of-File marker
+     1B        Escape - NOT USED
+               (in European versions 3.4x, ESC is a prefix for a
+               character for which the high bit should not be stripped
+               before interpreting.
+     1C        NOT USED - except in the case of 1B above, when it is
+               a suffix.
+     1D        NOT USED
+     1E        Soft hyphen
+     1F        NOT USED
+
+     COMMANDS USED ALONE
+
+     01        Alternat pitch
+     03        Print pause
+     05        User printer command
+     06        Phantom space
+     07        Phantom rubout
+     08        Strikeover character
+     0D        Carriage return. Not normally used in isolation
+               unless entered manually by user.
+     0E        Standard pitch
+     0F        Non-break space
+     11        User printer command
+     12        user printer command
+     17        user printer command
+     19        Ribbon colour change
+
+     0D 8A     Page Break
+     0D 0A     Line terminator on non-word-wrapped lines, or last
+     line of a paragraph (hard carrigae return)
+     8D 0A     Line terminator on word-wrapped lines (soft carriage
+     return).
+
+     DOT COMMANDS
+
+     WORDSTAR dot commands are written just as if they were normal
+     text, except that they must occur at the beginning of their own
+     unmiqu line.
+
+     Most of the commands take parameters - refer to a WORDSTAR book
+     for details
+
+     .BP       Bidirectional printing
+     .CP       Conditional page
+     .CW       Character width
+     .FM       Footer margin
+     .FO       Footer
+     .HE       Header
+     .HM       Header margin
+     .IG or .. Comment (not printed)
+     .LH       Line height
+     .MB       Bottom margin
+     .MT       Top margin
+     .OP       Omit page number
+     .PA       Page break
+     .PC       Page number column
+     .PL       Paper length
+     .PN       Page number
+     .PO       Page offset
+     .SR       Subscript/Superscript roll
+     .UJ       Micro-Justification
+
+5.   TEXT87 FILE FORMAT
+
+     Currently nothing is known by me about this format.   Any input
+     would be gratefully received.
+
+6.   WORDPLUS FILE FORMATS
+
+     This format is used by 1st Word and 1st Word Plus on the Atari
+     ST, and also by WordPlus on the IBM PC.
+
+     Control information is imbedded in the file by including lines
+     or charctyer strings that start with special characters.
+
+     Attribute type information is encoded into the main text string
+     using imbedded control characters.
+
+     ATTRIBUTES
+
+     These are set via the sequence $1B $nn where nn is a bit
+     dependent value set as follows:
+
+          01   Bold
+          02   Light
+          04   Italic
+          08   Underline
+
+          10   Superscript    )    Mutually
+          20   Subscript      )    Exclusive
+
+          80   ALWAYS set to indicate attribute byte.
+
+     These bits are additive to give the required combination of
+     attributes.
+
+     SPECIAL CHARACTERS
+
+          $0D $0A   End of line sequence
+
+          $1C       Spaces inserted for indent or centering
+                    purposes.
+
+          $1D       Indent start
+
+          $1E       These are spaces on lines which can potentially
+                    word-wrap.  Only spaces actually entered by the
+                    user are present.
+
+          $1F       Used to introduce a control line.  It appears
+                    that the next character determines the type.
+
+          $20       These are hard spaces.  Typically entered when
+                    the TAB key is used for positioning.
+
+     CONTROL LINES
+
+     These are lines which start with the special character $1F.
+     The next character then determines the type of Control Line.
+     They are used to set general details regarding the document.
+     They are in plain-text.
+
+     Page Layout  (Type 0)
+
+          <1F> 0 nn mmm
+
+          where     nn   Page length
+
+     Header Details (Type 1)
+
+          <1F> 1 header_left <1F> header_centre <1F> header_right
+
+     Footer Details (Type 2)
+
+          <1F> 2 footer_right <1F> footer_centre <1F> footer_right
+
+     Ruler Details (Type 9)
+
+          <1F> 9 ruler_text
+
+          where     [    Left Margin
+                    .    character position
+                    <7F> Standard Tab position
+                    #    Decimal tab position
+                    ]    Right margin
+
+          Right margin is followed by 3 characters which give:
+
+          a)   Font      0 = Pica
+                         1 = Elite
+                         2 = Condensed
+                         3 = Expanded
+
+          b)   Justify   0 = NO
+                         1 = YES
+
+          c)   Line Spacing (default 1)
+
+
+     ??? (Type F)
+
+
+7.   PIPEDREAM FILE FORMAT (CAMBRIDGE Z88)
+
+     The format is plain text and can be created with a normal
+     editor or pipedream itself.
+
+     The following convention has been used throughout:
+      [ .....   ]          optional
+     *[........ ]*         optional and can be repeated
+      <definition>         definition followed by explanation
+                           (as in the method of the BN notation)
+      {OA}                 hex character
+      TEXT                 characters to be included in text as
+     shown
+
+
+     Overall file format
+
+     [<format details>] <column information> *[<column information]*
+
+     The minimum file will simply have <column information> about a
+     single column.  Further column information will be needed for
+     each additional column.  The file is arranged in column order
+     ie. information about column A, then column B etc.  Within each
+     lot of column information, the row information is held in
+     acending order, row 1, row 2 ...
+
+     The <format details> correspond to the defaults set up under
+     <>O.  If these defaults are over-riden with respect to a single
+     cell that information is held within the cell details within
+     the <column information>.
+
+
+     Format details
+
+     The following text will set the default options as set by <>O.
+     The format is:
+
+            *[ %OP%<instruction>{0D}]*
+
+     The <format details> may be omitted if the defaults are to be
+     used.  The item may be repeated as often as necessary with
+     different instructions to set up comprehensive format defaults.
+     Individual instructions are only needed when  modifying the
+     default defaults, but must be included in the following order:
+
+     Operation      Default   Instruction
+
+     <>O         (requires no instruction)
+
+     Text/Numbers   T         TTN  (for numbers)
+     Borders        Y         BON  (for no borders)
+     Justify        N         JUY  (to justify)
+     Wrap           Y         WRN  (for no wrap)
+     Page length    66        PLnn (for length nn)
+     Line spacing   1         LSn  (for spacing n)
+     Start page     1         PSn  (for start page n)
+     Insert on wrap R         IWC  (for columns)
+     Auto/manual    A         AMM  (for manual)
+     Columns/Rows   C         RCR  (for rows)
+     Decimal places 2         DPn  (for n decimal places)
+     Minus/Brackets M         MBB  (for brackets)
+     Lead character `         LP<char>
+     Trailing character  %    TP<char>
+     Top margin     0         TMn  (for n lines)
+     Header margin  2         HMn  (for n lines)
+     Footer margin  2         FMn  (for n lines)
+     Bottom margin  8         BMn  (for n lines)
+     Left margin    0         LMn  (for n lines)
+     Header         none      HE<text>
+     Footer         none      FO<text>
+     Title          none      DE<text>
+
+
+     Column information
+
+     Information is arranged by column.  The column information
+     starts with specifying the column and its position then
+     continues with information about each cell in the column
+     starting with the cell in row 1:
+
+     %CO: <column letter>,<column width>,<width to right margin>%
+     *[ [<slot format details>] [<slot value>{0D}] ]*
+
+     The minimum column information must be given for each column in
+     the spreadsheet even if the column is blank.  <Slot value>s
+     must be given for every field up to the last used slot in a
+     column.  If a slot is blank, the slot entry will simply be
+     {0D}.  Slots in a column after the last used slot may be
+     omitted:  they will be assumed to be blank up to the bottom row
+     in the spreadsheet.
+
+     Slot format details are only required if they are deferent to
+     the default (as set by <>O or <format details> above).
+
+
+     <Column letter>
+
+     This is simply A, B, C, D, etc as appropriate to specify the
+     column and sequential order.
+
+
+     <Column width>
+
+     Integer specifying column width in characters.
+
+
+     <Width to right margin>
+
+     Integer specfying distance in characters from the left-hand
+     edge of column to the right-hand margin of the page as set by
+     <>H.
+
+
+
+     Slot format details
+
+
+     The following information can be specified to modify the
+     default formats set up for the spreadsheet insofaras they apply
+     to the single cell concerned.  Slot format details precede the
+     value in the slot they refer to.
+
+     Format         Default        Entry
+
+     Text/Number    Text           %V%  (for value or formula)
+                                   %V% is required to indicate text
+                                   whether or not %OP%TTN is set to
+                                   indicate numerical default input.
+
+     decimal places as per <>O     %Dn% (for n places)
+     right align    free align     %R%
+     left align     free align     %L%
+     centre align   free align     %C%
+     LCR align      free align     %LCR%
+     bracket/minus  minus          %B%
+     (for brackets)
+       leading character to be shown
+                    not shown      %LC%
+       trailing character to be shown
+                    not shown      %TC%
+     Printing highlight  none      %Hn%   (where n is highlight
+                                   number)
+
+     Slot value
+
+     The slot value is either numerical or text depending on the the
+     existence of a %V% slot format item or not.  All calculations
+     are taken to be numerical but are held in character
+     representation e.g %V%SIN(B1).   Text is purely held as
+     characters.
+
+     Example
+
+     The following is a plain text representation of a pipedream
+     file with 4 rows and columns A:C.  The spreadsheet sums two
+     numbers (35+12) in column B with the following non-standard
+     options:
+                - no borders
+                - brackets not minus symbol
+                - top margin 2
+
+     %OP%BON{0D}
+     %OP%MBB{0D}
+     %OP%TM2{0D}
+     %CO:A,12,72%CO:B,12,60%%V%%R%35{0D}
+     %V%%R%12{0D}
+     --------------{0D}
+     %V%%R%sum(B1B3){0D}
+     %CO:C,12,48%
+
+
+     As the character {OD} is the newline symbol in pipedream, the
+     above text could be typed in as plaintext exactly as shown
+     above (excluding the {0D} but starting newlines as shown after
+     these symbols).  When the file is saved as plaintext, it can
+     then be  reloaded as a pipedream file (plaintext=NO).
