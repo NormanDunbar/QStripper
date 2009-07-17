@@ -72,8 +72,10 @@ QuillDoc::QuillDoc(QString FileName)
     // The next 4 bytes are big-endian pointer to the text length.
     in >> fTextLength;
 
-    // Skip the three 2 byte pointers - we don't need them.
-    in.skipRawData(6);
+    // Fetch the three 2 byte pointers.
+    in >> fParaTableLength;
+    in >> fFreeSpaceLength;
+    in >> fLayoutTableLength;
 
     // Read the document header from position 20 up to the next zero byte.
     WhereAmI = 20;

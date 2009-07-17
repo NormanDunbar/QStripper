@@ -34,6 +34,9 @@ private:
     QString fFooter;                        // Document footer text.
     QString fText;                          // Document contents text.
     quint32 fTextLength;                    // Size of the above.
+    quint16 fParaTableLength;               // Size of Paragraph table.
+    quint16 fFreeSpaceLength;               // Size of free space table.
+    quint16 fLayoutTableLength;             // Size of layout table.
     bool    fValid;                         // Is this a valid Quill document?
     QString fErrorMessage;                  // What went wrong ?
 
