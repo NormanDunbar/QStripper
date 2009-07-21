@@ -194,9 +194,15 @@ QuillDoc::QuillDoc(QString FileName)
          default: fText.append(Char);                    // Pass through.
        }
     }
-
+    file.close();
     fValid = true;
     fErrorMessage = "";
+
+    // Now, read in the entire file as a QByteArray.
+    file.open(QIODevice::ReadOnly);
+    fRawFileContents = file.readAll();
+    file.close();
+
 }
 
 
@@ -287,6 +293,14 @@ QString QuillDoc::getText()
     return fText;
 }
 
+
+//------------------------------------------------------------------------------
+// Returns the entire contents of the Quill document as a QByteArray.
+//------------------------------------------------------------------------------
+QByteArray QuillDoc::getRawText()
+{
+    return fRawFileContents;
+}
 
 //------------------------------------------------------------------------------
 // Returns a QString holding the body text from the original Quill document.
