@@ -21,6 +21,7 @@
 
 class QFile;
 class QDataStream;
+class QByteArray;
 
 #include <QtGui>
 #include <QObject>
@@ -33,6 +34,7 @@ private:
     QString fHeader;                        // Document header text.
     QString fFooter;                        // Document footer text.
     QString fText;                          // Document contents text.
+    QByteArray fRawFileContents;            // Bytes of the document, as read.
     quint32 fTextLength;                    // Size of the above.
     quint16 fParaTableLength;               // Size of Paragraph table.
     quint16 fFreeSpaceLength;               // Size of free space table.
@@ -47,6 +49,7 @@ public :
     ~QuillDoc() {};
 
     QString getText();
+    QByteArray getRawText();
     quint32 getTextLength();
     QString getHeader();
     QString getFooter();
