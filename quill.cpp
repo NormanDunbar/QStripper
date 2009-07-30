@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2006-2006 Dunbar IT Consultants Ltd.
+** Copyright (C) 2006-2009 Dunbar IT Consultants Ltd.
 **
 ** This file is part of the QStripper application.
 **
@@ -69,6 +69,7 @@ QuillDoc::QuillDoc(QString FileName)
         return;
     }
 
+    // We know it's a Quill document now, create our conversion document.
     // The next 4 bytes are big-endian pointer to the text length.
     in >> fTextLength;
 
@@ -192,6 +193,7 @@ QuillDoc::QuillDoc(QString FileName)
          case 228: fText.append("&euro;"); break;        // Euro symbol.
          case '£': fText.append("&pound;"); break;       // £ for UK currency.
          default: fText.append(Char);                    // Pass through.
+
        }
     }
     file.close();
