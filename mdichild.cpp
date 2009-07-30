@@ -30,7 +30,8 @@ MdiChild::MdiChild()
     connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
             this, SIGNAL(FormatChanged(const QTextCharFormat &)));
 
-
+    setFontFamily("Courier New");
+    setFontPointSize(12);
 }
 
 // Reimplemented to force a call to FormatChanged() when we
@@ -371,12 +372,7 @@ bool MdiChild::TextUnderline(const bool Checked)
 bool MdiChild::TextSubScript(const bool Checked)
 {
     QTextCharFormat Format = currentCharFormat();
-
     Format.setVerticalAlignment(Checked ? QTextCharFormat::AlignSubScript : QTextCharFormat::AlignNormal);
-
-    // Subscript seems to get coloured grey and made very small - fix this !
-    // Setting point size to 12.0 results in the same sized text as normal - whihc is 16.0 :o(
-    Format.setFontPointSize(12.0);
     setCurrentCharFormat(Format);
     return Checked;
 }
@@ -385,12 +381,7 @@ bool MdiChild::TextSubScript(const bool Checked)
 bool MdiChild::TextSuperScript(const bool Checked)
 {
     QTextCharFormat Format = currentCharFormat();
-
     Format.setVerticalAlignment(Checked ? QTextCharFormat::AlignSuperScript : QTextCharFormat::AlignNormal);
-
-    // Superscript seems to get coloured grey and made very small - fix this !
-    // Setting point size to 12.0 results in the same sized text as normal - whihc is 16.0 :o(
-    Format.setFontPointSize(12.0);
     setCurrentCharFormat(Format);
     return Checked;
 }

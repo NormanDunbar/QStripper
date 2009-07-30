@@ -22,6 +22,7 @@
 class QFile;
 class QDataStream;
 class QByteArray;
+class QTextDocument;
 
 #include <QtGui>
 #include <QObject>
@@ -35,6 +36,7 @@ private:
     QString fFooter;                        // Document footer text.
     QString fText;                          // Document contents text.
     QByteArray fRawFileContents;            // Bytes of the document, as read.
+    QTextDocument *document;                // The raw text reformatted as "RTF"
     quint32 fTextLength;                    // Size of the above.
     quint16 fParaTableLength;               // Size of Paragraph table.
     quint16 fFreeSpaceLength;               // Size of free space table.
