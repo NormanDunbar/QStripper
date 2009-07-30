@@ -243,16 +243,6 @@ void MainWindow::about()
                "The source code for this application is available from the above email address."));
 }
 
-void MainWindow::aboutBugs()
-{
-   QMessageBox::about(this, tr("About QStripper Bugs"),
-            tr("<b>QStripper</b> has bugs!<hr>"
-               "<ul>"
-               "<li>When focus moves between windows, or when a window is clicked in, the caret "
-               "    (text cursor) disapears until you move it with an arrow key. Very irritating.</li>"
-               "</ul><hr>"));
-}
-
 void MainWindow::updateMenus()
 {
     bool hasMdiChild = (activeMdiChild() != 0);
@@ -418,11 +408,6 @@ void MainWindow::createActions()
     aboutAct->setStatusTip(tr("Show the application's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
-    aboutBugsAct = new QAction(QIcon(":/images/bugs.png"), tr("&About Bugs"), this);
-    aboutBugsAct->setShortcut(tr("Ctrl+Alt+F1"));
-    aboutBugsAct->setStatusTip(tr("Show information about outstanding bugs :o)"));
-    connect(aboutBugsAct, SIGNAL(triggered()), this, SLOT(aboutBugs()));
-
     aboutQtAct = new QAction(QIcon(":/images/qt.png"), tr("About &Qt"), this);
     aboutQtAct->setShortcut(tr("Ctrl+Shift+F1"));
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
@@ -527,7 +512,6 @@ void MainWindow::createMenus()
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(aboutQtAct);
-    helpMenu->addAction(aboutBugsAct);
 }
 
 void MainWindow::createToolBars()
