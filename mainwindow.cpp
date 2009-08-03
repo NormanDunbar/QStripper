@@ -39,6 +39,7 @@ MainWindow::MainWindow()
     readSettings();
 
     setWindowTitle(tr("QStripper Open Source Edition"));
+    fileName.clear();
     
     // Allow drops from Explorer etc.
     setAcceptDrops(true);
@@ -62,6 +63,9 @@ void MainWindow::FormatChanged(const QTextCharFormat &Format)
                                             TextSuperscriptAct->setChecked(false);
                                             break;
    }
+
+   comboFont->setCurrentIndex(comboFont->findText(Format.fontFamily()));
+   comboSize->setCurrentIndex(comboSize->findText(QString::number(Format.fontPointSize())));
 }
 
 
@@ -103,7 +107,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::open()
 {
-    QString fileName = QFileDialog::getOpenFileName(this);
+    //QString fileName = QFileDialog::getOpenFileName(this);
+    fileName = QFileDialog::getOpenFileName(this, tr("Open Quill Document"), fileName);
     openFile(fileName);
 }
 
@@ -221,6 +226,19 @@ void MainWindow::TextSuperScript()
     bool Checked = TextSuperscriptAct->isChecked();
     activeMdiChild()->TextSuperScript(Checked);
     TextSubscriptAct->setChecked(false);
+}
+
+void MainWindow::TextSize(const QString &size)
+{
+    if (size.toFloat() > 0.0) {
+        activeMdiChild()->setFontPointSize(size.toFloat());
+    }
+}
+
+
+void MainWindow::TextFamily(const QString &family)
+{
+    activeMdiChild()->setFontFamily(family);
 }
 
 
@@ -464,14 +482,6 @@ void MainWindow::createActions()
     TextSuperscriptAct = new QAction(QIcon(":/images/textsuperscript.png"), tr("SuperScript"), this);
     connect(TextSuperscriptAct, SIGNAL(triggered()), this, SLOT(TextSuperScript()));
     TextSuperscriptAct->setCheckable(true);
-
-    // The problem with Super and Sub script is this, they cannot both be on at the same time.
-    // This action group, with exclusive set to true, allows ONE of its member to be on.
-    // Unfortunately, once one member is ON, you cannot turn all of the mebers OFF again. :o(
-    //ScriptActionGroup = new QActionGroup(this);
-    //ScriptActionGroup->setExclusive(true);
-    //ScriptActionGroup->addAction(TextSubscriptAct);
-    //ScriptActionGroup->addAction(TextSuperscriptAct);
 }
 
 
@@ -540,6 +550,23 @@ void MainWindow::createToolBars()
 
     toolsToolBar = addToolBar(tr("Tools"));
     //toolsToolBar->addAction(RenameQuillAct);
+
+    // For now, use the tools toolbar for fonts.
+    comboFont = new QFontComboBox(toolsToolBar);
+    toolsToolBar->addWidget(comboFont);
+    connect(comboFont, SIGNAL(activated(const QString &)),this, SLOT(TextFamily(const QString &)));
+
+    comboSize = new QComboBox(toolsToolBar);
+    comboSize->setObjectName("comboSize");
+    toolsToolBar->addWidget(comboSize);
+    comboSize->setEditable(true);
+
+    QFontDatabase db;
+    foreach(int size, db.standardSizes())
+        comboSize->addItem(QString::number(size));
+
+    connect(comboSize, SIGNAL(activated(const QString &)),this, SLOT(TextSize(const QString &)));
+    comboSize->setCurrentIndex(comboSize->findText(QString::number(QApplication::font().pointSize())));
 }
 
 void MainWindow::createStatusBar()

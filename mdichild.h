@@ -23,12 +23,15 @@
 #include <QTextStream>
 #include <QTextFragment>
 
+class QuillDoc;
+
 class MdiChild : public QTextEdit
 {
     Q_OBJECT
 
 public:
     MdiChild();
+    ~MdiChild();
 
     bool loadFile(const QString &fileName);
     bool ExportText();
@@ -49,7 +52,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event);
-    void focusInEvent(QFocusEvent*);
+    void focusInEvent(QFocusEvent *event);
 
 private slots:
     void documentWasModified();
@@ -72,6 +75,8 @@ private:
     QString TXTFile;
     QString XMLFile;
     QString HTMLFile;
+
+    QuillDoc *Input;
 };
 
 #endif

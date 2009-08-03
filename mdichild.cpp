@@ -22,6 +22,11 @@
 #include "mdichild.h"
 #include "quill.h"
 
+MdiChild::~MdiChild()
+{
+    if (Input) delete Input;
+}
+
 MdiChild::MdiChild()
 {
     setAttribute(Qt::WA_DeleteOnClose);
@@ -30,8 +35,12 @@ MdiChild::MdiChild()
     connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
             this, SIGNAL(FormatChanged(const QTextCharFormat &)));
 
-    setFontFamily("Courier New");
-    setFontPointSize(12);
+    // Playing now!
+    // setTextBackgroundColor(QColor(0,0,0));   // Black
+    // setTextColor(QColor(0,255,0));     // Green
+    //setFontFamily("Courier New");
+    //setFontPointSize(12);
+    setTabStopWidth(40);
 }
 
 // Reimplemented to force a call to FormatChanged() when we
@@ -40,28 +49,27 @@ MdiChild::MdiChild()
 // Unfortunately, this leaves us with an invisible cursor until we move it
 // using an arrow key (or similar). Not good. Actually, it's a QT 'feature'
 // as disabling this signal, still shows the problem.
-void MdiChild::focusInEvent(QFocusEvent*)
+void MdiChild::focusInEvent(QFocusEvent *event)
 {
-    emit FormatChanged(currentCharFormat());
+    if (event->gotFocus()) {
+        emit FormatChanged(currentCharFormat());
+    }
 }
 
 
 bool MdiChild::loadFile(const QString &fileName)
 {
     QFile file(fileName);
-    QuillDoc *Input = new QuillDoc(fileName);
+    Input = new QuillDoc(fileName);
     if (!Input->isValid()) {
       QMessageBox::critical(this, tr("QStripper"),
                             tr("This is not a Quill file.\nError message :\n\n") + QString(Input->getError()));
-      delete Input;
       return false;
     }
 
-    setHtml(Input->getHeader().toLatin1() + QString("<hr>") +
-            Input->getText().toLatin1() + QString("<hr>") +
-            Input->getFooter().toLatin1());
-
-    delete Input;
+    // Use the quill document as our document.
+    setDocument(Input->getDocument());
+    setFocus();
     setCurrentFile(fileName);
     return true;
 }
@@ -202,7 +210,7 @@ bool MdiChild::ExportDocbook()
                                                 tr("Please enter a title for the DocBook article"),
                                                 QLineEdit::Normal, "", &ok);
     if (!ok) {
-       ArticleTitle = "Title Here";
+       ArticleTitle = "**** PUT YOUR TITLE HERE PLEASE ****";
     }
 
 
@@ -211,11 +219,8 @@ bool MdiChild::ExportDocbook()
 
     // XML header first.
     out << "<?xml version=\"1.0\" encoding=\"iso-8859-15\"?>\n";
-    out << "<!--  Commented out to stop Internet Explorer having a fit when it tries to read the XML file.\n";
-    out << "      Remove lines 2, 3 and 6 to revert to a 'proper' DocBook XML file if not using IE. Firefox is happy anyway.\n";
     out << "<!DOCTYPE article PUBLIC \"-//OASIS//DTD DocBook XML V4.2//EN\"\n";
     out << "\"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd\">\n";
-    out << "-->\n";
 
     // Make this an article, so get a title from the user.
     out << "<article>\n";
@@ -266,7 +271,7 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
     // We've got hard spaces, +/- etc in the text to translate.
     char Nbsp = 0xA0;
     char PlusMinus = 0xB1;
-    char Euro = 0xE4;
+    char Euro = 0x80;
 
     // This could be helpful ???? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     /*
