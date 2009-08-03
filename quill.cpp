@@ -23,23 +23,48 @@ const int Under = 2;
 const int Subscript = 4;
 const int Superscript = 8;
 
+QuillDoc::~QuillDoc()
+{
+    if (document) delete document;
+}
 
 //------------------------------------------------------------------------------
 // Constructor - opens the filename and reads in the raw data. As the data is
 // in QDOS format, it is converted to 'proper' ASCII format as it is read. This
 //is done with a simple translation table.
 //------------------------------------------------------------------------------
-QuillDoc::QuillDoc(QString FileName)
+QuillDoc::QuillDoc(const QString FileName)
 {
-    ulong WhereAmI;
-    quint8 Char;
-    bool BoldOn;
-    bool UnderOn;
-    bool SubOn;
-    bool SuperOn;
-    QStack<int> stack;
+    // Initialise everything.
+    fHeaderLength = 0;
+    fQuillMagic.clear();
+    fHeader.clear();
+    fFooter.clear();
+    document = new QTextDocument();     // We need to delete this!
+    fTextLength = 0;
+    fParaTableLength = 0;
+    fFreeSpaceLength = 0;
+    fLayoutTableLength = 0;
+    fValid = false;
+    fErrorMessage.clear();
 
+    // Try to load the file as raw data after performing a few checks to
+    // see if it may be a Quill document.
+    loadFile(FileName);
+    if (fValid) {
+        // Must be a valid Quill file. Build a document from the raw contents.
+        parseFile();
+    }
+}
 
+//------------------------------------------------------------------------------
+// Open the supplied file and check if it is actually a valid Quill document. If
+// so, read in the header data and the raw bytes. The file is closed here as
+// well. Everything else happens with the raw data.
+//------------------------------------------------------------------------------
+
+void QuillDoc::loadFile(const QString FileName)
+{
     // Make sure we read integers and stuff in BigEndian mode - like the QL does :o)
     QFile file(FileName);
     file.open(QIODevice::ReadOnly);
@@ -58,6 +83,7 @@ QuillDoc::QuillDoc(QString FileName)
 
     // The next 8 bytes are "vrm1qdf0"
     fQuillMagic.clear();
+    quint8 Char;
     for (int x = 0; x < 8; ++x) {
        in >> Char;
        fQuillMagic.append(Char);
@@ -69,8 +95,7 @@ QuillDoc::QuillDoc(QString FileName)
         return;
     }
 
-    // We know it's a Quill document now, create our conversion document.
-    // The next 4 bytes are big-endian pointer to the text length.
+    // The next 4 bytes are big-endian text length.
     in >> fTextLength;
 
     // Fetch the three 2 byte pointers.
@@ -78,124 +103,6 @@ QuillDoc::QuillDoc(QString FileName)
     in >> fFreeSpaceLength;
     in >> fLayoutTableLength;
 
-    // Read the document header from position 20 up to the next zero byte.
-    WhereAmI = 20;
-    fHeader.clear();
-    for (int x = 0; ; ++x) {
-       in >> Char;
-       Char = translate(Char);
-       ++WhereAmI;
-       if (Char == 0) break;
-       fHeader.append(Char);
-    }
-
-    // Read the footer next, up to the next zero byte.
-    fFooter.clear();
-    for (int x = 0; ; ++x) {
-       in >> Char;
-       Char = translate(Char);
-       ++WhereAmI;
-       if (Char == 0) break;
-       fFooter.append(Char);
-    }
-
-    // Now the contents.
-    fText.clear();
-    BoldOn = UnderOn = SuperOn = SubOn = false;
-    bool FormatError = false;
-    for (unsigned int x = WhereAmI; x < fTextLength; ++x) {
-       in >> Char;
-       Char = translate(Char);
-       switch (Char) {
-         case 0 : // Paragraph end & reset attributes.
-                  BoldOn = UnderOn = SuperOn = SubOn = false;
-                  while (!stack.isEmpty()) {
-                    switch (stack.pop()) {
-                      case Bold : fText.append("</B>"); break;
-                      case Under : fText.append("</U>"); break;
-                      case Subscript : fText.append("</SUB>"); break;
-                      case Superscript : fText.append("</SUP>"); break;
-                    }
-                  }
-                  fText.append("</P>\n<P>");
-                  break;
-         case 9 : fText.append("&nbsp;&nbsp;&nbsp;&nbsp;"); break;           // Tab - replace by 4 hard spaces
-         case '<': fText.append("&lt;"); break;
-         case '>': fText.append("&gt;"); break;
-         case '&': fText.append("&amp;"); break;
-         case 12: break;                                  // Form Feed - ignored.
-         case 15: if (BoldOn) {
-                    // Bold is currently on - check the stack as top one must be bold too.
-                    if (stack.pop() != Bold) {
-                      FormatError = true;
-                      fText.append("</B>**** ERROR BOLD OFF OUT OF SEQUENCE *****");
-                    } else {
-                      fText.append("</B>");
-                    }
-                  } else {
-                      // Bold is currently off - stack it and turn it on.
-                      fText.append("<B>");
-                      stack.push(Bold);
-                  }
-                  BoldOn = !BoldOn;
-                  continue;
-                  break;
-         case 16: if (UnderOn) {
-                    // Underline is currently on - check the stack as top one must be the same.
-                    if (stack.pop() != Under) {
-                      FormatError = true;
-                      fText.append("</U>**** ERROR UNDERLINE OFF OUT OF SEQUENCE *****");
-                    } else {
-                      fText.append("</U>");
-                    }
-                  } else {
-                      // Under is currently off - stack it and turn it on.
-                      fText.append("<U>");
-                    stack.push(Under);
-                  }
-                  UnderOn = !UnderOn;
-                  continue;
-                  break;
-         case 17: if (SubOn) {
-                    // Subscript is currently on - check the stack as top one must be the same.
-                    if (stack.pop() != Subscript) {
-                      FormatError = true;
-                      fText.append("</SUB>**** ERROR SUBSCRIPT OFF OUT OF SEQUENCE *****");
-                    } else {
-                      fText.append("</SUB>");
-                    }
-                  } else {
-                      // Subscript is currently off - stack it and turn it on.
-                      fText.append("<SUB>");
-                    stack.push(Subscript);
-                  }
-                  SubOn = !SubOn;
-                  continue;
-                  break;
-         case 18: if (SuperOn) {
-                    // Superscript is currently on - check the stack as top one must be the same.
-                    if (stack.pop() != Superscript) {
-                      FormatError = true;
-                      fText.append("</SUP>**** ERROR SUPERSCRIPT OFF OUT OF SEQUENCE *****");
-                    } else {
-                      fText.append("</SUP>");
-                    }
-                  } else {
-                      // Superscript is currently off - stack it and turn it on.
-                      fText.append("<SUP>");
-                    stack.push(Superscript);
-                  }
-                  SuperOn = !SuperOn;
-                  continue;
-                  break;
-         case 30: continue; break;                       // Soft hyphen - ignored.
-         case 127: fText.append("&copy;"); break;        // (c) symbol.
-         case 228: fText.append("&euro;"); break;        // Euro symbol.
-         case '£': fText.append("&pound;"); break;       // £ for UK currency.
-         default: fText.append(Char);                    // Pass through.
-
-       }
-    }
     file.close();
     fValid = true;
     fErrorMessage = "";
@@ -204,7 +111,172 @@ QuillDoc::QuillDoc(QString FileName)
     file.open(QIODevice::ReadOnly);
     fRawFileContents = file.readAll();
     file.close();
+}
 
+//------------------------------------------------------------------------------
+// Extract various bits from the document's raw data.
+//------------------------------------------------------------------------------
+void QuillDoc::parseFile()
+{
+    parseText();
+    parseParagraphTable();
+    parseFreeSpaceTable();
+    parseLayoutTable();
+}
+
+//------------------------------------------------------------------------------
+// Extract the text including headers and footers.
+//------------------------------------------------------------------------------
+void QuillDoc::parseText()
+{
+    // The text area always starts at offset 20. The first two paragraphs are
+    // the header and footer - which may be blank. The terminating byte of zero
+    // will always be found. (All paragraphs are terminated by a zero byte.)
+    quint8 Char;
+
+    // Header first.
+    fRawPointer = 20;       // Always the start of the text area.
+
+     do {
+       Char = fRawFileContents[fRawPointer++];  // Points to NEXT character now.
+       if (Char == 0) break;
+       Char = translate(Char);
+       fHeader.append(Char);
+    } while (1);
+
+    // Footer next.
+    do {
+       Char = fRawFileContents[fRawPointer++];  // Points to NEXT character now.
+       if (Char == 0) break;
+       Char = translate(Char);
+       fFooter.append(Char);
+    } while (1);
+
+    // The actual text comes next. We stop when we reach offset fTextLength as
+    // that is the first byte of the following Paragraph table.
+
+    QTextCursor cursor(document);
+    QTextCharFormat charFormat;
+    QTextCharFormat defaultFormat;
+
+    // Set default settings for everything off in new paragraphs.
+    defaultFormat.setFontFamily("Courier New");
+    defaultFormat.setFontPointSize(12);
+    defaultFormat.setFontItalic(false);
+
+    bool SuperOn = false;
+    bool SubOn = false;
+    defaultFormat.setVerticalAlignment(QTextCharFormat::AlignNormal);
+
+    bool BoldOn = false;
+    defaultFormat.setFontWeight(QFont::Normal);
+
+    bool UnderOn = false;
+    defaultFormat.setFontUnderline(UnderOn);
+
+    // Set the current format as well - for the first (system created) paragraph.
+    cursor.setCharFormat(defaultFormat);
+
+    // And read the format for later too.
+    charFormat = cursor.charFormat();
+
+    // And now, process the text contents.
+    while (fRawPointer < fTextLength) {
+       Char = fRawFileContents[fRawPointer++];
+       Char = translate(Char);
+
+       // Process each character to see if it is a control code or not.
+       switch (Char) {
+         case 0 : // Paragraph end & reset attributes.
+             BoldOn = UnderOn = SuperOn = SubOn = false;
+             cursor.insertBlock();
+             cursor.setCharFormat(defaultFormat);
+             break;
+
+         case 12: break;                                  // Form Feed - ignored.
+
+         case 15: if (BoldOn) {
+                    charFormat.setFontWeight(QFont::Normal);
+                } else {
+                    charFormat.setFontWeight(QFont::Bold);
+                }
+
+                BoldOn = !BoldOn;
+                cursor.setCharFormat(charFormat);
+                continue;
+                break;
+
+         case 16: if (UnderOn) {
+                    charFormat.setFontUnderline(false);
+                } else {
+                    charFormat.setFontUnderline(true);
+                }
+                UnderOn = !UnderOn;
+
+                cursor.setCharFormat(charFormat);
+                continue;
+                break;
+
+         case 17: if (SubOn) {
+                    charFormat.setVerticalAlignment(QTextCharFormat::AlignNormal);
+                  } else {
+                    charFormat.setVerticalAlignment(QTextCharFormat::AlignSubScript);
+                  }
+                  SubOn = !SubOn;
+
+                cursor.setCharFormat(charFormat);
+                continue;
+                break;
+
+         case 18: if (SuperOn) {
+                    charFormat.setVerticalAlignment(QTextCharFormat::AlignNormal);
+                  } else {
+                    charFormat.setVerticalAlignment(QTextCharFormat::AlignSuperScript);
+                  }
+                  SuperOn = !SuperOn;
+
+                cursor.setCharFormat(charFormat);
+                continue;
+                break;
+
+         case 30: continue; break;                       // Soft hyphen - ignored.
+
+         //case 169: cursor.insertText(QString(Char));    // Copyright
+         //          break;
+
+         //case 128: cursor.insertText(QString(Char));  // Euro symbol
+         //          break;
+
+         default: cursor.insertText(QString(Char));     // Everything else.
+
+       }
+    }
+}
+
+//------------------------------------------------------------------------------
+// Extract the paragraph table.
+//------------------------------------------------------------------------------
+void QuillDoc::parseParagraphTable()
+{
+}
+
+//------------------------------------------------------------------------------
+// Extract the free space table - which is ignored.
+//------------------------------------------------------------------------------
+void QuillDoc::parseFreeSpaceTable()
+{
+}
+
+//------------------------------------------------------------------------------
+// Extract the layout table.
+//------------------------------------------------------------------------------
+void QuillDoc::parseLayoutTable()
+{
+}
+
+QTextDocument *QuillDoc::getDocument()
+{
+    return document;
 }
 
 
@@ -276,11 +348,11 @@ quint8  QuillDoc::translate(const quint8 c)
            186, 176, // °
            187, 247}; // ÷
 
+    // Pound Sterling sign (£).
+    if (c == 96) return 163;
+
     // Unchanged characters.
     if (c < 127 || c > 187) return c;
-        
-    // Pound Sterling sign (£).       
-    if (c == 96) return 163;   
         
     // All the rest.
     return (Ql2Win[ ((c - 127) * 2) + 1 ]);
@@ -292,7 +364,7 @@ quint8  QuillDoc::translate(const quint8 c)
 //------------------------------------------------------------------------------
 QString QuillDoc::getText()
 {
-    return fText;
+    return document->toPlainText();
 }
 
 

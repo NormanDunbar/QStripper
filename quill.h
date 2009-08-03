@@ -34,8 +34,8 @@ private:
     QString fQuillMagic;                    // Quill 'magic' flag = 'vrm1qdf0'.
     QString fHeader;                        // Document header text.
     QString fFooter;                        // Document footer text.
-    QString fText;                          // Document contents text.
     QByteArray fRawFileContents;            // Bytes of the document, as read.
+    quint32 fRawPointer;                    // Used when scanning the raw document.
     QTextDocument *document;                // The raw text reformatted as "RTF"
     quint32 fTextLength;                    // Size of the above.
     quint16 fParaTableLength;               // Size of Paragraph table.
@@ -44,11 +44,18 @@ private:
     bool    fValid;                         // Is this a valid Quill document?
     QString fErrorMessage;                  // What went wrong ?
 
-    quint8  translate(const quint8 c);     // Convert from QDOS to WIN chars.
+    void    loadFile(const QString FileName); // Load a valid Quill file?
+    void    parseFile();                    // Parse it into a document.
+    void    parseText();                    // The next 4 do as they say!
+    void    parseParagraphTable();
+    void    parseFreeSpaceTable();
+    void    parseLayoutTable();
+
+    quint8  translate(const quint8 c);      // Convert from QDOS to Win/Lin chars.
 
 public :
-    QuillDoc(QString FileName);
-    ~QuillDoc() {};
+    QuillDoc(const QString FileName);
+    ~QuillDoc();
 
     QString getText();
     QByteArray getRawText();
@@ -57,6 +64,7 @@ public :
     QString getFooter();
     bool    isValid();
     QString getError();
+    QTextDocument *getDocument();
 };
 
 #endif

@@ -31,6 +31,8 @@ class NDWorkspace;
 class QTextCharFormat;
 class QDropEvent;
 class QMimeData;
+class QFontComboBox;
+class QComboBox;
 
 class MainWindow : public QMainWindow
 {
@@ -56,6 +58,8 @@ private slots:
     void ExportDocbook();
     void ExportPDF();
     void TextBold();
+    void TextSize(const QString &size);
+    void TextFamily(const QString &family);
     void TextItalic();
     void TextUnderline();
     void TextSubScript();
@@ -123,6 +127,10 @@ private:
     QAction *FilePrintAct;
 
     QActionGroup *ScriptActionGroup;
+
+    QFontComboBox *comboFont;
+    QComboBox *comboSize;
+    QString fileName;
 };
 
 #endif
