@@ -7,7 +7,11 @@ E) Better HTML output.
 B) Got a funny when the first paragraph in the document is <U><B>Stuff</B></U> as the <HR> is drawn below the first paramrgaph and not under the header (which is blank in this case). Weird.
 B) FIXED. When using Explorer, select many files and OPEN WITH, only one opens. (Per) 
 B) When a file is modified, exporting (at least as XML) doesn't clear the modification status.
-B) SORT OF FIXED. WORKS IN LINUX! Fix that bloody (XML) Euro ! QUILL=$80=128, WIN=$B5=181, ISO-8859-15=$A4 It's not displaying nor is it exporting correctly. It seems to export as $80 again. XMLSpy rejects it. 
+B) SORT OF FIXED. WORKS IN LINUX! Fix that bloody (XML) Euro ! QUILL=$80=128, WIN=$B5=181,
+ISO-8859-15=$A4 It's not displaying nor is it exporting correctly. It seems to export as
+$80 again. XMLSpy rejects it.
+B) LINUX ONLY - when focus in the edit window. The text drop down is not updating with
+the text family name. Works fine in WINDOWS.
 
 For Per.
 --------
