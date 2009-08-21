@@ -290,6 +290,9 @@ void MainWindow::updateMenus()
     bool hasSelection = (activeMdiChild() && activeMdiChild()->textCursor().hasSelection());
     cutAct->setEnabled(hasSelection);
     copyAct->setEnabled(hasSelection);
+
+    comboFont->setEnabled(hasMdiChild);
+    comboSize->setEnabled(hasMdiChild);
 }
 
 void MainWindow::updateWindowMenu()
