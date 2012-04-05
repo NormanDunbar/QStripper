@@ -22,6 +22,8 @@ const int Bold = 1;
 const int Under = 2;
 const int Subscript = 4;
 const int Superscript = 8;
+const int Italic = 16;
+
 
 QuillDoc::~QuillDoc()
 {
@@ -47,6 +49,7 @@ QuillDoc::QuillDoc(const QString FileName)
     fLayoutTableLength = 0;
     fValid = false;
     fErrorMessage.clear();
+    fPCFile = false;
 
     // Try to load the file as raw data after performing a few checks to
     // see if it may be a Quill document.
@@ -71,14 +74,22 @@ void QuillDoc::loadFile(const QString FileName)
     QDataStream in(&file);
     in.setByteOrder(QDataStream::BigEndian);
 
-    // The first two bytes are 0x00 and 0x14 = 20 = Size of header block.
+    // The first two bytes are 0x00 and 0x14 = 20 = Size of header block. (QL)
+    // or 0x14 and 0x00 = 5,120 if we are reading a PC Quill document. (PC)
     fValid = false;
     in >> fHeaderLength;
 
-    if (fHeaderLength != 20) {
+    if (fHeaderLength != 20 && fHeaderLength != 5120) {  // 20 = QL, 5,120 = PC
         fValid = false;
         fErrorMessage = QString("Header block length not equal 20 bytes, actually = %1").arg(fHeaderLength);
         return;
+    }
+
+    // Are we reading a PC Quill doc? If so, adjust things accordingly.
+    if (fHeaderLength == 5120) {
+        fHeaderLength = 20;
+        fPCFile = true;
+        in.setByteOrder(QDataStream::LittleEndian);
     }
 
     // The next 8 bytes are "vrm1qdf0"
@@ -95,7 +106,7 @@ void QuillDoc::loadFile(const QString FileName)
         return;
     }
 
-    // The next 4 bytes are big-endian text length.
+    // The next 4 bytes are the text length.
     in >> fTextLength;
 
     // Fetch the three 2 byte pointers.
@@ -174,6 +185,9 @@ void QuillDoc::parseText()
     bool UnderOn = false;
     defaultFormat.setFontUnderline(UnderOn);
 
+    bool ItalicOn = false;
+    defaultFormat.setFontItalic(ItalicOn);
+
     // Set the current format as well - for the first (system created) paragraph.
     cursor.setCharFormat(defaultFormat);
 
@@ -188,7 +202,7 @@ void QuillDoc::parseText()
        // Process each character to see if it is a control code or not.
        switch (Char) {
          case 0 : // Paragraph end & reset attributes.
-             BoldOn = UnderOn = SuperOn = SubOn = false;
+             BoldOn = UnderOn = SuperOn = SubOn = ItalicOn = false;
              cursor.insertBlock();
              cursor.setCharFormat(defaultFormat);
              break;
@@ -239,7 +253,18 @@ void QuillDoc::parseText()
                 continue;
                 break;
 
-         case 30: continue; break;                       // Soft hyphen - ignored.
+         case 19: if (ItalicOn) {
+                    charFormat.setFontItalic(false);
+                  } else {
+                    charFormat.setFontItalic(true);
+                  }
+
+                  ItalicOn = !ItalicOn;
+                  cursor.setCharFormat(charFormat);
+                  continue;
+                  break;
+
+       case 30: continue; break;                       // Soft hyphen - ignored.
 
          //case 169: cursor.insertText(QString(Char));    // Copyright
          //          break;
@@ -285,7 +310,27 @@ QTextDocument *QuillDoc::getDocument()
 //------------------------------------------------------------------------------
 quint8  QuillDoc::translate(const quint8 c)
 {
+    static quint8 PC2QL[] = {
+        0x81, 0x87, // u umlaut
+        0x82, 0x83, // e acute
+        0x83, 0x8e, // a circumflex
+        0x84, 0x80, // a umlaut
+        0x85, 0x8d, // a grave
+        0x87, 0x88, // c cedilla
+        0x88, 0x91, // e curcumflex
+        0x89, 0x8f, // e umlaut
+        0x8a, 0x90, // e grave
+        0x8b, 0x92, // i umlaut
+        0x8c, 0x95, // i circumflex
+        0x93, 0x98, // o circumflex
+        0x94, 0x84, // o umlaut
+        0x96, 0x9b, // u curcumflex
+        0x97, 0x9a  // u grave
+    };
+
     static quint8 Ql2Win[] = {                // From char, to char
+
+
            127, 169, // ©
            128, 228, // ä
            129, 227, // ã
@@ -348,14 +393,35 @@ quint8  QuillDoc::translate(const quint8 c)
            186, 176, // °
            187, 247}; // ÷
 
+    // First, PC to QL translation. This in incomplete at present!
+    quint8 cc = c;
+    switch (cc) {
+        case 0x81: cc = 0x87 ; break;
+        case 0x82: cc = 0x83 ; break;
+        case 0x83: cc = 0x8e ; break;
+        case 0x84: cc = 0x80 ; break;
+        case 0x85: cc = 0x8d ; break;
+        case 0x87: cc = 0x88 ; break;
+        case 0x88: cc = 0x91 ; break;
+        case 0x89: cc = 0x8f ; break;
+        case 0x8a: cc = 0x90 ; break;
+        case 0x8b: cc = 0x92 ; break;
+        case 0x8c: cc = 0x95 ; break;
+        case 0x93: cc = 0x98 ; break;
+        case 0x94: cc = 0x84 ; break;
+        case 0x96: cc = 0x9b ; break;
+        case 0x97: cc = 0x9a ; break;
+    }
+
+
     // Pound Sterling sign (£).
-    if (c == 96) return 163;
+    if (cc == 96) return 163;
 
     // Unchanged characters.
-    if (c < 127 || c > 187) return c;
+    if (cc < 127 || cc > 187) return c;
         
     // All the rest.
-    return (Ql2Win[ ((c - 127) * 2) + 1 ]);
+    return (Ql2Win[ ((cc - 127) * 2) + 1 ]);
 }
 
 

@@ -251,14 +251,18 @@ void MainWindow::FilePrint()
 void MainWindow::about()
 {
    QMessageBox::about(this, tr("About QStripper"),
-            tr("<b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
+            tr("<b>QSTRIPPER version "
+               QSTRIPPER_VERSION
+               "</b><br><br>"
+               "<b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
                "open multiple QL Quill documents and save them in various (other) formats."
                "<br>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
-               "<br><br><ul><li>Text<li>Html<li>Docbook XML<li>PDF</ul><hr>"
-               "<b>Contact Details :</b>"
-               "Web site : http://www.dunbar-it.co.uk<br>"
-               "Email : Norman@Dunbar-IT.co.uk<hr>"
-               "The source code for this application is available from the above email address."));
+               "<br><ul><li>Text<li>Html<li>Docbook XML<li>PDF</ul><hr>"
+               "<b>Contact Details :</b><br><br>"
+               "Web site : <b>http://qdosmsq.dunbar-it.co.uk</b><br>"
+               "Email : Norman@Dunbar-it.co.uk<hr>"
+               "The source code for this application is available from SourceForge, as follows, using Subversion:"
+               "<br><br><b>svn checkout https://qstripper.svn.sourceforge.net/svnroot/qstripper</b>"));
 }
 
 void MainWindow::updateMenus()
