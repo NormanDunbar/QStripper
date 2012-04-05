@@ -43,6 +43,7 @@ private:
     quint16 fLayoutTableLength;             // Size of layout table.
     bool    fValid;                         // Is this a valid Quill document?
     QString fErrorMessage;                  // What went wrong ?
+    bool    fPCFile;                        // This is a PC Quill file, or not.
 
     void    loadFile(const QString FileName); // Load a valid Quill file?
     void    parseFile();                    // Parse it into a document.
