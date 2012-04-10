@@ -8,7 +8,8 @@ DEPENDPATH += .
 INCLUDEPATH += .
 
 # Input
-HEADERS += mainwindow.h mdichild.h ndworkspace.h quill.h
+HEADERS += mainwindow.h mdichild.h ndworkspace.h quill.h \
+    version.h
 SOURCES += main.cpp mainwindow.cpp mdichild.cpp ndworkspace.cpp quill.cpp 
 RESOURCES += qstripper.qrc
 
