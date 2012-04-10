@@ -19,8 +19,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-// Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.01"
 
 #include <QMainWindow>
 

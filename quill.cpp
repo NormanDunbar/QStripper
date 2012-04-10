@@ -393,24 +393,27 @@ quint8  QuillDoc::translate(const quint8 c)
            186, 176, // °
            187, 247}; // ÷
 
-    // First, PC to QL translation. This in incomplete at present!
+    // First, PC to QL translation. This is incomplete at present!
     quint8 cc = c;
-    switch (cc) {
-        case 0x81: cc = 0x87 ; break;
-        case 0x82: cc = 0x83 ; break;
-        case 0x83: cc = 0x8e ; break;
-        case 0x84: cc = 0x80 ; break;
-        case 0x85: cc = 0x8d ; break;
-        case 0x87: cc = 0x88 ; break;
-        case 0x88: cc = 0x91 ; break;
-        case 0x89: cc = 0x8f ; break;
-        case 0x8a: cc = 0x90 ; break;
-        case 0x8b: cc = 0x92 ; break;
-        case 0x8c: cc = 0x95 ; break;
-        case 0x93: cc = 0x98 ; break;
-        case 0x94: cc = 0x84 ; break;
-        case 0x96: cc = 0x9b ; break;
-        case 0x97: cc = 0x9a ; break;
+
+    if (fPCFile) {
+        switch (cc) {
+            case 0x81: cc = 0x87 ; break;
+            case 0x82: cc = 0x83 ; break;
+            case 0x83: cc = 0x8e ; break;
+            case 0x84: cc = 0x80 ; break;
+            case 0x85: cc = 0x8d ; break;
+            case 0x87: cc = 0x88 ; break;
+            case 0x88: cc = 0x91 ; break;
+            case 0x89: cc = 0x8f ; break;
+            case 0x8a: cc = 0x90 ; break;
+            case 0x8b: cc = 0x92 ; break;
+            case 0x8c: cc = 0x95 ; break;
+            case 0x93: cc = 0x98 ; break;
+            case 0x94: cc = 0x84 ; break;
+            case 0x96: cc = 0x9b ; break;
+            case 0x97: cc = 0x9a ; break;
+        }
     }
 
 

@@ -21,6 +21,7 @@
 #include "mainwindow.h"
 #include "mdichild.h"
 #include "ndworkspace.h"
+#include "version.h"
 
 MainWindow::MainWindow()
 {
@@ -403,8 +404,8 @@ void MainWindow::createActions()
     cascadeAct->setStatusTip(tr("Cascade the windows"));
     connect(cascadeAct, SIGNAL(triggered()), workspace, SLOT(cascade()));
 
-    TileHAct = new QAction(tr("Tile &horozontally"), this);
-    TileHAct->setStatusTip(tr("Tile the windows horozontally"));
+    TileHAct = new QAction(tr("Tile &horizontally"), this);
+    TileHAct->setStatusTip(tr("Tile the windows horizontally"));
     connect(TileHAct, SIGNAL(triggered()), workspace, SLOT(tileHorozontally()));
 
     TileVAct = new QAction(tr("Tile &vertically"), this);
