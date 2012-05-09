@@ -425,7 +425,7 @@ quint8  QuillDoc::translate(const quint8 c)
 #ifndef __WIN32__
            181, 128, // €
 #else
-           181, '?',  // € is different on Windows!
+           181, '€',  // € is different on Windows!
 #endif
            182, 167, // §
            183, 183, // ·
