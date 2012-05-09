@@ -166,7 +166,6 @@ void MainWindow::ExportText()
     MdiChild *x = activeMdiChild();
     x->ExportText();
     workspace->setActiveWindow(x);
-    //activeMdiChild()->ExportText();
 }
 
 void MainWindow::ExportHTML()
@@ -174,7 +173,6 @@ void MainWindow::ExportHTML()
     MdiChild *x = activeMdiChild();
     x->ExportHTML();
     workspace->setActiveWindow(x);
-//    activeMdiChild()->ExportHTML();
 }
 
 void MainWindow::ExportPDF()
@@ -182,7 +180,6 @@ void MainWindow::ExportPDF()
     MdiChild *x = activeMdiChild();
     x->ExportPDF();
     workspace->setActiveWindow(x);
-//    activeMdiChild()->ExportPDF();
 }
 
 void MainWindow::ExportDocbook()
@@ -190,7 +187,6 @@ void MainWindow::ExportDocbook()
     MdiChild *x = activeMdiChild();
     x->ExportDocbook();
     workspace->setActiveWindow(x);
-//    activeMdiChild()->ExportDocbook();
 }
 
 void MainWindow::TextBold()
@@ -209,7 +205,7 @@ void MainWindow::TextUnderline()
 }
 
 // Superscript and SubScript are/should be mutually exclusive. To enable this, I can
-// add them both to an ActionGroup whihc has been setExclusive. This works in that it
+// add them both to an ActionGroup which has been setExclusive. This works in that it
 // does allow only one of the two actions to be 'checked'. Unfortunately, I cannot get
 // them all off again. The ActionGroup has nothing like an AllowAllUp property, so I
 // have to do it manually here.
