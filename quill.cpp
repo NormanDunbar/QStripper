@@ -266,13 +266,7 @@ void QuillDoc::parseText()
 
        case 30: continue; break;                       // Soft hyphen - ignored.
 
-         //case 169: cursor.insertText(QString(Char));    // Copyright
-         //          break;
-
-         //case 128: cursor.insertText(QString(Char));  // Euro symbol
-         //          break;
-
-         default: cursor.insertText(QString(Char));     // Everything else.
+       default: cursor.insertText(QString(Char));     // Everything else.
 
        }
     }
@@ -310,27 +304,70 @@ QTextDocument *QuillDoc::getDocument()
 //------------------------------------------------------------------------------
 quint8  QuillDoc::translate(const quint8 c)
 {
-    static quint8 PC2QL[] = {
-        0x81, 0x87, // u umlaut
-        0x82, 0x83, // e acute
-        0x83, 0x8e, // a circumflex
-        0x84, 0x80, // a umlaut
-        0x85, 0x8d, // a grave
-        0x87, 0x88, // c cedilla
-        0x88, 0x91, // e curcumflex
-        0x89, 0x8f, // e umlaut
-        0x8a, 0x90, // e grave
-        0x8b, 0x92, // i umlaut
-        0x8c, 0x95, // i circumflex
-        0x93, 0x98, // o circumflex
-        0x94, 0x84, // o umlaut
-        0x96, 0x9b, // u curcumflex
-        0x97, 0x9a  // u grave
-    };
+    static quint8 Dos2QL[] = {  // DOS char, QL Char
+            127, 127, // UNCHANGED
+            128, 168, // C cedilla
+            129, 135, // u umlaut
+            130, 131, // e acute
+            131, 142, // a circumflex
+            132, 132, // UNCHANGED
+            133, 141, // a grave
+            134, 130, // a acute
+            135, 136, // c cdilla
+            136, 145, // e circumflex
+            137, 143, // e umlaut
+            138, 144, // e grave
+            139, 146, // i umlaut
+            140, 149, // i circumflex
+            141, 148, // i grave
+            142, 160, // A umlaut
+            143, 143, // UNCHANGED
+            144, 163, // E acute
+            145, 138, // ae ligature
+            146, 170, // AE ligature
+            147, 152, // o circumflex
+            148, 132, // o umlaut
+            149, 151, // o grave
+            150, 155, // u circumflex
+            151, 154, // u grave
+            152, 152, // UNCHANGED
+            153, 164, // O umlaut
+            154, 167, // U umlaut
+            155, 157, // cent
+            156, 156, // UNCHANGED
+            157, 158, // Yen
+            158, 158, // UNCHANGED
+            159, 159, // UNCHANGED
+            160, 140, // a grave
+            161, 147, // i acute
+            162, 150, // o acute
+            163, 153, // u acute
+            164, 137, // n tilde
+            165, 169, // N tilde
+            166, 166, // UNCHANGED
+            167, 167, // UNCHANGED
+            168, 180, // iquestion
+            169, 169, // UNCHANGED
+            170, 170, // UNCHANGED
+            171, 171, // UNCHANGED
+            172, 172, // UNCHANGED
+            173, 173, // UNCHANGED
+            174, 184, // Left double arrow
+            175, 185, // Right double arrow
+            176, 176, // UNCHANGED
+            177, 177, // UNCHANGED
+            178, 178, // UNCHANGED
+            179, 179, // UNCHANGED
+            180, 180, // UNCHANGED
+            181, 181, // UNCHANGED
+            182, 182, // UNCHANGED
+            183, 183, // UNCHANGED
+            184, 184, // UNCHANGED
+            185, 185, // UNCHANGED
+            186, 186, // UNCHANGED
+            187, 187}; // UNCHANGED
 
-    static quint8 Ql2Win[] = {                // From char, to char
-
-
+    static quint8 Ql2Win[] = {  // QL char, Windows char
            127, 169, // ©
            128, 228, // ä
            129, 227, // ã
@@ -343,7 +380,7 @@ quint8  QuillDoc::translate(const quint8 c)
            136, 231, // ç
            137, 241, // ñ
            138, 230, // æ
-           139, 156, // œ
+           139, 156, // oe Ligature
            140, 225, // á
            141, 224, // à
            142, 226, // â
@@ -375,7 +412,7 @@ quint8  QuillDoc::translate(const quint8 c)
            168, 199, // Ç
            169, 209, // Ñ
            170, 198, // Æ
-           171, 140, // Œ
+           171, 140, // OE Ligature
            172, 172, // ¬
            173, 173, // ­
            174, 174, // ®
@@ -396,27 +433,30 @@ quint8  QuillDoc::translate(const quint8 c)
     // First, PC to QL translation. This is incomplete at present!
     quint8 cc = c;
 
+    // If this is a PC file, convert from DOS to QL first...
     if (fPCFile) {
+        // Pound Sterling sign (£)
+        if (cc == 156) {cc = 96; goto ql_convert;}
+
+        // Higher than 187 characters.
         switch (cc) {
-            case 0x81: cc = 0x87 ; break;
-            case 0x82: cc = 0x83 ; break;
-            case 0x83: cc = 0x8e ; break;
-            case 0x84: cc = 0x80 ; break;
-            case 0x85: cc = 0x8d ; break;
-            case 0x87: cc = 0x88 ; break;
-            case 0x88: cc = 0x91 ; break;
-            case 0x89: cc = 0x8f ; break;
-            case 0x8a: cc = 0x90 ; break;
-            case 0x8b: cc = 0x92 ; break;
-            case 0x8c: cc = 0x95 ; break;
-            case 0x93: cc = 0x98 ; break;
-            case 0x94: cc = 0x84 ; break;
-            case 0x96: cc = 0x9b ; break;
-            case 0x97: cc = 0x9a ; break;
+           case 225: cc = 156; goto ql_convert;break; // sz ligature
+           case 227: cc = 177; goto ql_convert;break; // Pi(co) (p)
+           case 230: cc = 176; goto ql_convert;break; // micro (u)
+           case 237: cc = 166; goto ql_convert;break; // O slash
+           case 246: cc = 187; goto ql_convert;break; // Divide
+           case 248: cc = 186; goto ql_convert;break; // Degree
         }
+
+        // Unchanged characters
+        if (cc < 127 || cc > 187) { goto ql_convert; } // Do nothing.
+
+        // All the rest.
+        cc = Dos2QL[ ((cc - 127) *2) +1];
     }
 
-
+ql_convert:
+    // Now convert from QL to Windows.
     // Pound Sterling sign (£).
     if (cc == 96) return 163;
 
