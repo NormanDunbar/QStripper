@@ -2,7 +2,7 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.03"
+#define QSTRIPPER_VERSION "1.04"
 
 // Version History
 //
@@ -18,5 +18,9 @@
 // 1.03 - Extended the DOS to QL conversion table with details kindly
 //        supplied by Geoff Wicks as a jpeg image. (Which has been
 //        added to the Subversion repository.)
+//
+// 1.04 - Windows flatly refuses to show the Euro symbol. In Linux it
+//        is $80/128 in Windows, the same, but shows up as a blob. And
+//        yet, a Euro character is supposedly $80/128 in Windows too.
 
 #endif // VERSION_H
