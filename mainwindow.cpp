@@ -39,6 +39,7 @@ MainWindow::MainWindow()
 
     readSettings();
 
+    setWindowIcon(QIcon(":/images/quill.jpg"));
     setWindowTitle(tr("QStripper Open Source Edition"));
     fileName.clear();
     
