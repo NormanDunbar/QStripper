@@ -2,7 +2,7 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.04"
+#define QSTRIPPER_VERSION "1.05"
 
 // Version History
 //
@@ -22,5 +22,7 @@
 // 1.04 - Windows flatly refuses to show the Euro symbol. In Linux it
 //        is $80/128 in Windows, the same, but shows up as a blob. And
 //        yet, a Euro character is supposedly $80/128 in Windows too.
+//
+// 1.05 - Added main Window icon. It seemed to have the default one before.
 
 #endif // VERSION_H

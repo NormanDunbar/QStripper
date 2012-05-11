@@ -1,25 +1,26 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-    <file>images/copy.png</file>
-    <file>images/cut.png</file>
-    <file>images/new.png</file>
-    <file>images/open.png</file>
-    <file>images/paste.png</file>
-    <file>images/save.png</file>
-    <file>images/exit.png</file>
-    <file>images/bugs.png</file>
-    <file>images/fileinfo.png</file>
-    <file>images/fileprint.png</file>
-    <file>images/question.png</file>
-    <file>images/qt.png</file>
-    <file>images/exportpdf.png</file>
-    <file>images/exporttxt.png</file>
-    <file>images/exporthtml.png</file>
-    <file>images/exportxml.png</file>
-    <file>images/textbold.png</file>
-    <file>images/textunder.png</file>
-    <file>images/textitalic.png</file>
-    <file>images/textsubscript.png</file>
-    <file>images/textsuperscript.png</file>
-</qresource>
+<RCC>
+    <qresource prefix="/">
+        <file>images/copy.png</file>
+        <file>images/cut.png</file>
+        <file>images/new.png</file>
+        <file>images/open.png</file>
+        <file>images/paste.png</file>
+        <file>images/save.png</file>
+        <file>images/exit.png</file>
+        <file>images/bugs.png</file>
+        <file>images/fileinfo.png</file>
+        <file>images/fileprint.png</file>
+        <file>images/question.png</file>
+        <file>images/qt.png</file>
+        <file>images/exportpdf.png</file>
+        <file>images/exporttxt.png</file>
+        <file>images/exporthtml.png</file>
+        <file>images/exportxml.png</file>
+        <file>images/textbold.png</file>
+        <file>images/textunder.png</file>
+        <file>images/textitalic.png</file>
+        <file>images/textsubscript.png</file>
+        <file>images/textsuperscript.png</file>
+        <file>images/quill.jpg</file>
+    </qresource>
 </RCC>
