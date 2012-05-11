@@ -11,12 +11,20 @@ h1 {font-size: 200%;
     letter-spacing: 3px;
     margin: 0;
     padding: 0.66em 0 0.33em 29%;
-    background: rgb(85%,85%,70%);}
+    background: rgb(85%,85%,70%);
+    //background: url("images/quill.png");
+    //background-position: right;
+    //background-repeat: no-repeat;}
 
 h3 {font-size: 1.33em;
     margin: 0;
     padding: 0;
-    border-bottom: 1px solid black;}
+    //padding-left: 30;
+    border-bottom: 1px solid black;
+    //background: url("images/quill.png");
+    //background-position: left;
+    //background-repeat: no-repeat;}
+}
 
 h4 {font-size: 1em;
     margin: 0;
@@ -47,7 +55,7 @@ div#entry {margin: 2em 10% 1em 30%;
  * the same colour as the background fixes that ! (ND)         *
  *-------------------------------------------------------------*/
 div#sidebar {position: fixed;
-             top: 5;
+             top: 37;
              left: 5;
              width: 23%;
              margin: 2em 0 0 2%;
@@ -81,3 +89,4 @@ div#sidebar {position: fixed;
 
 #sidebar a:hover {color: rgb(10%,20%,0%);
                   background: #FFF;}
+
