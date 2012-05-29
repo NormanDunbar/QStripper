@@ -177,6 +177,30 @@ bool MdiChild::ExportPDF()
     return true;
 }
 
+bool MdiChild::ExportODF()
+{
+   QString fileName = ODFFile;
+   if (fileName.isEmpty()) {
+     fileName = filePath(curFile) + "/" +
+                fileBasename(curFile) +
+                ".odf";
+   }
+
+    fileName = QFileDialog::getSaveFileName(this, "Export ODF", fileName, "ODF files (*.odf)");
+    if (fileName.isEmpty())
+        return false;
+
+    if (fileExtension(fileName).toLower() != "odf")
+        fileName += ".odf";
+
+    QTextDocumentWriter odf;
+    odf.setFormat("odf");
+    odf.setFileName(fileName);
+    odf.write(document());
+    ODFFile = fileName;
+    return true;
+}
+
 bool MdiChild::ExportDocbook()
 {
    QString fileName = XMLFile;

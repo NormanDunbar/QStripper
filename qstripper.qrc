@@ -22,5 +22,6 @@
         <file>images/textsubscript.png</file>
         <file>images/textsuperscript.png</file>
         <file>images/quill.jpg</file>
+        <file>images/exportodf.png</file>
     </qresource>
 </RCC>

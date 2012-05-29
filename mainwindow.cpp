@@ -183,6 +183,13 @@ void MainWindow::ExportPDF()
     workspace->setActiveWindow(x);
 }
 
+void MainWindow::ExportODF()
+{
+    MdiChild *x = activeMdiChild();
+    x->ExportODF();
+    workspace->setActiveWindow(x);
+}
+
 void MainWindow::ExportDocbook()
 {
     MdiChild *x = activeMdiChild();
@@ -255,12 +262,14 @@ void MainWindow::about()
                "<b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
                "open multiple QL Quill documents and save them in various (other) formats."
                "<br>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
-               "<br><ul><li>Text<li>Html<li>Docbook XML<li>PDF</ul><hr>"
+               "<br><ul><li>Text<li>Html<li>Docbook XML<li>PDF<li>ODF: Open Document Format for Open/Libre Office</ul><hr>"
                "<b>Contact Details :</b><br><br>"
                "Web site : <b>http://qdosmsq.dunbar-it.co.uk</b><br>"
                "Email : Norman@Dunbar-it.co.uk<hr>"
                "The source code for this application is available from SourceForge, as follows, using Subversion:"
-               "<br><br><b>svn checkout https://qstripper.svn.sourceforge.net/svnroot/qstripper</b>"));
+               "<br><br><b>svn checkout https://qstripper.svn.sourceforge.net/svnroot/qstripper</b>"
+               "<br><br>or as a daily snapshot (in tar format) from</br>"
+               "<br><br><b>http://qstripper.svn.sourceforge.net/viewvc/qstripper/?view=tar</b>"));
 }
 
 void MainWindow::updateMenus()
@@ -274,6 +283,7 @@ void MainWindow::updateMenus()
     TileVAct->setEnabled(hasMdiChild);
     ExportHTMLAct->setEnabled(hasMdiChild);
     ExportPDFAct->setEnabled(hasMdiChild);
+    ExportODFAct->setEnabled(hasMdiChild);
     ExportTextAct->setEnabled(hasMdiChild);
     ExportDocbookAct->setEnabled(hasMdiChild);
     cascadeAct->setEnabled(hasMdiChild);
@@ -456,6 +466,11 @@ void MainWindow::createActions()
     ExportPDFAct->setStatusTip(tr("Export the current file as PDF"));
     connect(ExportPDFAct, SIGNAL(triggered()), this, SLOT(ExportPDF()));
 
+    ExportODFAct = new QAction(QIcon(":/images/exportodf.png"), tr("Export &ODF"), this);
+    ExportODFAct->setShortcut(tr("Ctrl+Shift+O"));
+    ExportODFAct->setStatusTip(tr("Export the current file as ODF"));
+    connect(ExportODFAct, SIGNAL(triggered()), this, SLOT(ExportODF()));
+
     TextBoldAct = new QAction(QIcon(":/images/textbold.png"), tr("&Bold"), this);
     TextBoldAct->setShortcut(Qt::CTRL + Qt::Key_B);
     QFont bold;
@@ -509,6 +524,7 @@ void MainWindow::createMenus()
     exportMenu->addAction(ExportHTMLAct);
     exportMenu->addAction(ExportDocbookAct);
     exportMenu->addAction(ExportPDFAct);
+    exportMenu->addAction(ExportODFAct);
 
     textMenu = menuBar()->addMenu(tr("&Format"));
     textMenu->addAction(TextBoldAct);
@@ -545,6 +561,7 @@ void MainWindow::createToolBars()
     exportToolBar->addAction(ExportHTMLAct);
     exportToolBar->addAction(ExportDocbookAct);
     exportToolBar->addAction(ExportPDFAct);
+    exportToolBar->addAction(ExportODFAct);
 
     textToolBar = addToolBar(tr("Format"));
     textToolBar->addAction(TextBoldAct);

@@ -37,6 +37,7 @@ public:
     bool ExportText();
     bool ExportHTML();
     bool ExportPDF();
+    bool ExportODF();
     bool ExportDocbook();
     bool TextBold(const bool Checked);
     bool TextItalic(const bool Checked);
@@ -72,6 +73,7 @@ private:
     bool isUntitled;
     
     QString PDFFile;
+    QString ODFFile;
     QString TXTFile;
     QString XMLFile;
     QString HTMLFile;

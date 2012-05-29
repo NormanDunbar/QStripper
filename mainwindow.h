@@ -58,6 +58,7 @@ private slots:
     void ExportHTML();
     void ExportDocbook();
     void ExportPDF();
+    void ExportODF();
     void TextBold();
     void TextSize(const QString &size);
     void TextFamily(const QString &family);
@@ -119,6 +120,7 @@ private:
     QAction *ExportTextAct;
     QAction *ExportDocbookAct;
     QAction *ExportPDFAct;
+    QAction *ExportODFAct;
     QAction *RenameQuillAct;
     QAction *TextBoldAct;
     QAction *TextItalicAct;
