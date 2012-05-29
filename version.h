@@ -2,7 +2,7 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.05"
+#define QSTRIPPER_VERSION "1.06"
 
 // Version History
 //
@@ -24,5 +24,8 @@
 //        yet, a Euro character is supposedly $80/128 in Windows too.
 //
 // 1.05 - Added main Window icon. It seemed to have the default one before.
+//
+// 1.06 - Added export to ODF facility. Now Quill Files can be exported to
+//        Open Office and/or Libre Office.
 
 #endif // VERSION_H
