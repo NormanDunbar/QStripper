@@ -310,7 +310,7 @@ quint8  QuillDoc::translate(const quint8 c)
             129, 135, // u umlaut
             130, 131, // e acute
             131, 142, // a circumflex
-            132, 132, // UNCHANGED
+            132, 128, // a umlaut
             133, 141, // a grave
             134, 130, // a acute
             135, 136, // c cdilla
