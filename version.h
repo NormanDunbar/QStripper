@@ -2,7 +2,7 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.06"
+#define QSTRIPPER_VERSION "1.07"
 
 // Version History
 //
@@ -27,5 +27,8 @@
 //
 // 1.06 - Added export to ODF facility. Now Quill Files can be exported to
 //        Open Office and/or Libre Office.
+//
+// 1.07 - Fixed PC conversion of a umlaut. (132->228 as opposed to 132->246).
+//
 
 #endif // VERSION_H
