@@ -23,6 +23,7 @@
 <li><a href="#macos">For MAC-OS Users</a></li>
 <li><a href="#features">Features</a></li>
 <li><a href="#pdf">Going further with PDF</a></li>
+<li><a href="#kindle">Kindle eBooks</a></li>
 </ul>
 <img src="http://www.softpedia.com/base_img/softpedia_free_award_f.gif">
 </div>
@@ -55,7 +56,7 @@ QT4 toolkit for C++ developers.</p>
 Open Office and Libre Office by allowing exports in ODF format.</p>
 
 <a name="downloads"</a>
-<h3><img style="width: 27px; height: 48px;" alt="" src="images/quill.png">Downloads etc</h3>
+<h3><img style="width: 27px; height: 48px;" alt="" src="images/quill.png">Executable Downloads</h3>
 <p>The downloads for this application are in two parts. The first is the
 support files - dlls on Windows - that are required by the
 compiler system, the QT4 system and whatever else I can squeeze in as well!</p>
@@ -68,11 +69,11 @@ new release of QT or the compiler I use comes out which requires an upgrade.</p>
 with KDE as their desktop, most likely already have the support files installed. 
 If not, install them using your package manager.</p>
 
-<p>The main downloads page for <em>all</em> versions of QStripper is:<a href="https://sourceforge.net/projects/qstripper/files/">here</a>.</p>
+<p>The main downloads page for <em>all</em> versions of QStripper is <a href="https://sourceforge.net/projects/qstripper/files/">here</a>.</p>
 
 <a name="sourcecode"</a>
 <h3><img style="width: 27px; height: 48px;" alt="" src="images/quill.png">Sourcecode Downloads</h3>
-<p>The source code can be checked out from the Subversion repository using the command <pre>svn co https://qstripper.svn.sourceforge.net/svnroot/qstripper qstripper </pre></p>
+<p>The source code can be checked out from the Subversion repository using the command: <pre>svn co https://qstripper.svn.sourceforge.net/svnroot/qstripper qstripper </pre></p>
 <p>The source can also be obtained from the daily snapshot as a <em>tarball</em> from <a href="http://qstripper.svn.sourceforge.net/viewvc/qstripper/?view=tar">here</a>.</p>
 
 <a name="projectpage"</a>
@@ -111,8 +112,7 @@ have to download the updated application - that saves a lot of time!</p>
 files via your package manager, then install the application and when you have 
 done this, it is all ready to go.</p>
 
-<p>At present, only 64 bit Linux is supported as that's unfortunately all I have on my development laptop.<p>
-<p>If you only have a 32 bit Linux install, please download and compile the <a href="#sourcecode">source code</a>. Until further notice.</p>
+<p>From version 1.07, both 32 and 64 bit Linux is supported. Prior to 1.07, only 64 bit Linux was supported.<p>
 
 <a name="macos">
 	<h3><img style="width: 27px; height: 48px;" alt="" src="images/quill.png">MAC-OS</h3>
@@ -126,9 +126,9 @@ done this, it is all ready to go.</p>
 <ul>
 <li>It's free.</li>
 <li>Source code is available from the Subversion repository using the 
-command <pre>svn co https://qstripper.svn.sourceforge.net/svnroot/qstripper qstripper </pre>  or, alternatively, 
+command: <pre>svn co https://qstripper.svn.sourceforge.net/svnroot/qstripper qstripper </pre>  or, alternatively, 
 as a <em>tarball</em> from  <a href="http://qstripper.svn.sourceforge.net/viewvc/qstripper/?view=tar">here</a>.</li>
-<li>Multi-platform. 32 and 64 bit Windows, 64 bit Linux. 32 bit Linux and Mac users need to get the source and compile it at present I'm afraid.</li>
+<li>Multi-platform. 32 and 64 bit Windows, 32 and 64 bit Linux. Unfortunately, Mac users need to get the source and compile it at present I'm afraid.</li>
 <li>Drag and Drop files from Explorer, Dolphin, Konquerer etc.</li>
 <li>Pass filenames on the command line.</li>
 <li>Can convert both QL and PC versions of Quill documents.</li>
@@ -160,7 +160,7 @@ DocBook XML input file :</p>
 <li>HTML - paged with navigation bar etc.</li>
 <li>HTML - all on one single page.</li>
 <li>PDF</li>
-<li>EPUB - for eReaders, but not Amazon's Kindle.</li>
+<li>EPUB - for eReaders, but not Amazon's Kindle. See <a href="#kindle">below</a>.</li>
 </ul>
 
 <p>On the above web site, they advise that the utility is suitable for smaller
@@ -183,8 +183,31 @@ on the machine you are using and both run quite happily under Windows or Linux.
 </p>
 
 
+<a name="kindle">
+	<h3><img style="width: 27px; height: 48px;" alt="" src="images/quill.png">Creating Kindle eBooks</h3>
+<p>It is possible to create Kindle ebooks from Qstripper, via an application named <a href="http://www.amazon.com/kindleformat/kindlegen">KindleGen</a> which is available from
+<a href="http://www.amazon.com/kindleformat/kindlegen">Amazon's web site</a> for a number of diffrent platforms. Ebooks created with this utility can be previewed
+using <a href="http://www.amazon.com/kindleformat/kindlepreviewer">KindlePreviewer</a> but only on Mac and Windows. Linux users are somewhat left out.</p>
+
+<p>The process is "simple". Export your document as HTML and then run the command:
+<pre>kindlegen filename.html -o filename.mobi</pre>You might find, on testing the generated mobi file, that you
+need to do a little tidying up of the HTML and/or the CSS. I suggest you use one of the following programs:</p>
+
+<ul>
+<li><a href="https://code.google.com/p/sigil/">Sigil</a>. Free, cross platform - Windows, Mac, Linux.</li>
+<li><a href="http://www.juliansmart.com/ecub">Ecub</a>. Free, cross platform - Windows, Mac, Linux, BSD, Solaris.</li>
+<li><a href="http://www.jutoh.com/">Jutoh</a>. Ecub's big brother. Not free, but reasonable. Cross platform - Windows, Mac, Linux, BSD, Solaris.</li>
+</ul>
+
+<p>The default export to HTML option does tend to be a 	tad 'wordy' and include a lot of Qt specific settings, classes and identifiers
+which the KindleGen completely ignores and creates an eBook with very little formatting applied.</p>
+
+<p>It's probably better to generate Docbook XML instead, and the pass that through a transform to create HTML and the try running
+Kindlegen on that instead.</p>
 
 </div>
+
+<?php echo "Hello" ?>
 
 </body>
 </html>
