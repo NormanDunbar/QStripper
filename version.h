@@ -2,7 +2,7 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.07"
+#define QSTRIPPER_VERSION "1.08"
 
 // Version History
 //
@@ -30,5 +30,8 @@
 //
 // 1.07 - Fixed PC conversion of a umlaut. (132->228 as opposed to 132->246).
 //
+// 1.08 - Added ability to file->Open multiple files. (Derek Stewart)
+//        After opening all files, the windows are cascaded to show them all. (Derek Stewart)
+//        SourceForge URLs have been changed, by SourceForge, so fixed Help->About.
 
 #endif // VERSION_H
