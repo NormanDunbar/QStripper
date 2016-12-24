@@ -55,15 +55,21 @@ void MainWindow::FormatChanged(const QTextCharFormat &Format)
    TextItalicAct->setChecked(Format.font().italic());
    TextUnderlineAct->setChecked(Format.font().underline());
    switch (Format.verticalAlignment()) {
-     case QTextCharFormat::AlignNormal : TextSubscriptAct->setChecked(false);
-                                         TextSuperscriptAct->setChecked(false);
-                                         break;
-     case QTextCharFormat::AlignSuperScript : TextSubscriptAct->setChecked(false);
-                                              TextSuperscriptAct->setChecked(true);
-                                              break;
-     case QTextCharFormat::AlignSubScript : TextSubscriptAct->setChecked(true);
-                                            TextSuperscriptAct->setChecked(false);
-                                            break;
+     case QTextCharFormat::AlignNormal: TextSubscriptAct->setChecked(false);
+                                        TextSuperscriptAct->setChecked(false);
+                                        break;
+     case QTextCharFormat::AlignSuperScript: TextSubscriptAct->setChecked(false);
+                                             TextSuperscriptAct->setChecked(true);
+                                             break;
+     case QTextCharFormat::AlignSubScript: TextSubscriptAct->setChecked(true);
+                                           TextSuperscriptAct->setChecked(false);
+                                           break;
+
+     // These just avoid warnings about unused elephants.
+     case QTextCharFormat::AlignMiddle: break;
+     case QTextCharFormat::AlignTop: break;
+     case QTextCharFormat::AlignBottom: break;
+     case QTextCharFormat::AlignBaseline: break;
    }
 
    comboFont->setCurrentIndex(comboFont->findText(Format.fontFamily()));
@@ -93,6 +99,9 @@ void MainWindow::dropEvent(QDropEvent *event)
        }
     }
 
+    // Cascade the current open windows.
+    workspace->cascade();
+
     event->acceptProposedAction();
 }
 
@@ -109,9 +118,19 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::open()
 {
-    //QString fileName = QFileDialog::getOpenFileName(this);
-    fileName = QFileDialog::getOpenFileName(this, tr("Open Quill Document"), fileName);
-    openFile(fileName);
+    // Attempt to open multiple files from the last directory used.
+    //fileName = QFileDialog::getOpenFileName(this, tr("Open Quill Document"), fileName);
+    QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open Quill Documents"), fileName);
+
+    // Open all the files. This looks like only the final one opened ...
+    QStringList::const_iterator ci;
+    for (ci = fileNames.constBegin(); ci != fileNames.constEnd(); ++ci) {
+        fileName = (*ci);
+        openFile(fileName);
+    }
+
+    // ... so cascade the current open windows.
+    workspace->cascade();
 }
 
 void MainWindow::openFile(const QString &fileName)
@@ -267,9 +286,9 @@ void MainWindow::about()
                "Web site : <b>http://qdosmsq.dunbar-it.co.uk</b><br>"
                "Email : Norman@Dunbar-it.co.uk<hr>"
                "The source code for this application is available from SourceForge, as follows, using Subversion:"
-               "<br><br><b>svn checkout https://qstripper.svn.sourceforge.net/svnroot/qstripper</b>"
+               "<br><br><b>svn checkout http://svn.code.sf.net/p/qstripper/code/ qstripper</b>"
                "<br><br>or as a daily snapshot (in tar format) from</br>"
-               "<br><br><b>http://qstripper.svn.sourceforge.net/viewvc/qstripper/?view=tar</b>"));
+               "<br><br><b>https://sourceforge.net/p/qstripper/code/HEAD/tarball</b>"));
 }
 
 void MainWindow::updateMenus()
@@ -533,7 +552,8 @@ void MainWindow::createMenus()
     textMenu->addAction(TextSubscriptAct);
     textMenu->addAction(TextSuperscriptAct);
 
-    toolsMenu = menuBar()->addMenu(tr("&Tools"));
+    // Not used at present.
+    //toolsMenu = menuBar()->addMenu(tr("&Tools"));
 
     windowMenu = menuBar()->addMenu(tr("&Window"));
     connect(windowMenu, SIGNAL(aboutToShow()), this, SLOT(updateWindowMenu()));
