@@ -45,11 +45,18 @@ public:
     bool TextSubScript(const bool Checked);
     bool TextSuperScript(const bool Checked);
     bool FilePrint();
+    void setSilent(bool silent);
     QString userFriendlyCurrentFile();
     QString currentFile() { return curFile; }
     QString fileExtension(const QString &fullFileName);
     QString fileBasename(const QString &fullFileName);
     QString filePath(const QString &fullFileName);
+    QString curFile;
+    QString PDFFile;
+    QString ODFFile;
+    QString TXTFile;
+    QString XMLFile;
+    QString HTMLFile;
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -68,15 +75,8 @@ private:
     QString DocBookParagraph(const QTextBlock &ThisBlock);
     QString DocBookFragment(const QTextFragment &ThisFragment);
     bool maybeSave();
-
-    QString curFile;
     bool isUntitled;
-    
-    QString PDFFile;
-    QString ODFFile;
-    QString TXTFile;
-    QString XMLFile;
-    QString HTMLFile;
+    bool silentRunning;
 
     QuillDoc *Input;
 };

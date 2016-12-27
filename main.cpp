@@ -26,10 +26,16 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
     MainWindow mainWin;
+
+    // If we have arguments, process them.
+    if (argc > 1) {
+
+        // If true, we are exporting silently.
+        if (mainWin.processArgs(argc, argv))
+            return 0;
+    }
+
+    // Otherwise, display the main window.
     mainWin.show();
-
-    for (int Files = 1; Files < argc; Files++)
-      mainWin.openFile(argv[Files]);
-
     return app.exec();
 }

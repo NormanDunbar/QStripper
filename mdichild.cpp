@@ -30,6 +30,7 @@ MdiChild::~MdiChild()
 MdiChild::MdiChild()
 {
     setAttribute(Qt::WA_DeleteOnClose);
+    silentRunning = false;
 
     connect(document(), SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
     connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
@@ -88,7 +89,9 @@ bool MdiChild::ExportText()
                 ".txt";
    }
 
-    fileName = QFileDialog::getSaveFileName(this, tr("Export as plain text"), fileName, "Text Files (*.txt)");
+    if (!silentRunning)
+        fileName = QFileDialog::getSaveFileName(this, tr("Export as plain text"), fileName, "Text Files (*.txt)");
+
     if (fileName.isEmpty())
         return false;
         
@@ -123,7 +126,9 @@ bool MdiChild::ExportHTML()
                 ".html";
    }
 
-    fileName = QFileDialog::getSaveFileName(this, tr("Export as HTML"), fileName, "HTML Files (*.html;*.htm)");
+    if (!silentRunning)
+        fileName = QFileDialog::getSaveFileName(this, tr("Export as HTML"), fileName, "HTML Files (*.html;*.htm)");
+
     if (fileName.isEmpty())
         return false;
 
@@ -162,7 +167,9 @@ bool MdiChild::ExportPDF()
                 ".pdf";
    }
 
-    fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "PDF files (*.pdf)");
+    if (!silentRunning)
+        fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "PDF files (*.pdf)");
+
     if (fileName.isEmpty())
         return false;
 
@@ -186,7 +193,9 @@ bool MdiChild::ExportODF()
                 ".odf";
    }
 
-    fileName = QFileDialog::getSaveFileName(this, "Export ODF", fileName, "ODF files (*.odf)");
+    if (!silentRunning)
+        fileName = QFileDialog::getSaveFileName(this, "Export ODF", fileName, "ODF files (*.odf)");
+
     if (fileName.isEmpty())
         return false;
 
@@ -210,7 +219,9 @@ bool MdiChild::ExportDocbook()
                 ".xml";
    }
 
-    fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "XML files (*.xml)");
+    if (!silentRunning)
+        fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "XML files (*.xml)");
+
     if (fileName.isEmpty())
         return false;
 
@@ -227,12 +238,14 @@ bool MdiChild::ExportDocbook()
     }
 
     // Ask user for a title for the Article.
-    bool ok;
+    bool ok = false;
+    QString ArticleTitle;
 
-    QString ArticleTitle= QInputDialog::getText(this,
-                                                tr("Enter DocBook Article Title"),
-                                                tr("Please enter a title for the DocBook article"),
-                                                QLineEdit::Normal, "", &ok);
+    if (!silentRunning)
+        ArticleTitle= QInputDialog::getText(this,
+                                            tr("Enter DocBook Article Title"),
+                                            tr("Please enter a title for the DocBook article"),
+                                            QLineEdit::Normal, "", &ok);
     if (!ok) {
        ArticleTitle = "**** PUT YOUR TITLE HERE PLEASE ****";
     }
@@ -345,13 +358,17 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
        return "<emphasis role=\"bold\">" + ThisText + "</emphasis>";
 
      switch (Format.verticalAlignment()) {
-       case QTextCharFormat::AlignNormal : return ThisText;
-       case QTextCharFormat::AlignSuperScript : return "<superscript>" +
+        case QTextCharFormat::AlignNormal: return ThisText;
+        case QTextCharFormat::AlignSuperScript: return "<superscript>" +
                                                        ThisText +
                                                        "</superscript>";
-       case QTextCharFormat::AlignSubScript : return "<subscript>" +
+        case QTextCharFormat::AlignSubScript: return "<subscript>" +
                                                        ThisText +
                                                        "</supbscript>";
+        case QTextCharFormat::AlignMiddle: break;
+        case QTextCharFormat::AlignTop: break;
+        case QTextCharFormat::AlignBottom: break;
+        case QTextCharFormat::AlignBaseline: break;
      }
      
      return ThisText;
@@ -479,4 +496,9 @@ QString MdiChild::fileBasename(const QString &fullFileName)
 QString MdiChild::filePath(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).path();
+}
+
+void MdiChild::setSilent(bool silent)
+{
+    silentRunning = silent;
 }

@@ -42,6 +42,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
     void openFile(const QString &fileName);
+    bool processArgs(int argc, char *argv[]);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -52,6 +53,7 @@ private slots:
     void copy();
     void paste();
     void about();
+    void help();
     void updateMenus();
     void updateWindowMenu();
     void ExportText();
@@ -114,6 +116,7 @@ private:
     QAction *separatorAct;
     QAction *aboutAct;
     QAction *aboutQtAct;
+    QAction *helpAct;
     QAction *TileHAct;
     QAction *TileVAct;
     QAction *ExportHTMLAct;
