@@ -2,7 +2,7 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.08"
+#define QSTRIPPER_VERSION "1.09"
 
 // Version History
 //
@@ -33,5 +33,12 @@
 // 1.08 - Added ability to file->Open multiple files. (Derek Stewart)
 //        After opening all files, the windows are cascaded to show them all. (Derek Stewart)
 //        SourceForge URLs have been changed, by SourceForge, so fixed Help->About.
+//
+// 1.09 - Added commandline export options. (Derek Stewart)
+//        Added Help (F1) option to explain the commandline stuff.
+//        qstripper --help
+//        qstripper --export --fmt list_of_files
+//        fmt = --pdf, --docbook, --odf, --text or --html.
+//        Exported files are created in the same folder as the input files.
 
 #endif // VERSION_H

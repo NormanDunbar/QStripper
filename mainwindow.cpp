@@ -275,9 +275,9 @@ void MainWindow::FilePrint()
 void MainWindow::about()
 {
    QMessageBox::about(this, tr("About QStripper"),
-            tr("<b>QSTRIPPER version "
+            tr("<h1><b>QSTRIPPER version "
                QSTRIPPER_VERSION
-               "</b><br><br>"
+               "</b></h1><br>"
                "<b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
                "open multiple QL Quill documents and save them in various (other) formats."
                "<br>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
@@ -289,6 +289,31 @@ void MainWindow::about()
                "<br><br><b>svn checkout http://svn.code.sf.net/p/qstripper/code/ qstripper</b>"
                "<br><br>or as a daily snapshot (in tar format) from</br>"
                "<br><br><b>https://sourceforge.net/p/qstripper/code/HEAD/tarball</b>"));
+}
+
+void MainWindow::help()
+{
+   QMessageBox::about(this, tr("QStripper Commandline Help"),
+            tr("<h1><b>QSTRIPPER version "
+               QSTRIPPER_VERSION
+               "</b></h1><br>"
+               "<b>QStripper --help</b>"
+               "<br>or<br>"
+               "<b>QStripper [--export &lt;FORMAT&gt;] list_of_Quill_files</b><br>"
+               "<br><b>--help</b> - displays this help page, and exits.<br>"
+               "<br><b>--export</b> indicates that you wish to run silently and export the list of files to"
+               "<br>a desired format, pdf for example."
+               "<br>"
+               "<br>If --export is present, it <em>must</em> be the first parameter. It <em>must</em> also be followed"
+               "<br>by a valid export format, which must be one of the following:"
+               "<br>"
+               "<br><b>--pdf</b> - Export all files to pdf."
+               "<br><b>--text</b> - Export all files to text."
+               "<br><b>--odf</b> - Export all files to Libre Office odf format."
+               "<br><b>--docbook</b> - Export all files to Docbook XML."
+               "<br><b>--html</b> - Export all files to HTML format."
+               "<br><br>All files will be created in the <em>same folder as the input file(s).</em>"
+               ));
 }
 
 void MainWindow::updateMenus()
@@ -465,6 +490,11 @@ void MainWindow::createActions()
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
+    helpAct = new QAction(QIcon(":/images/fileinfo.png"), tr("&Help"), this);
+    helpAct->setShortcut(tr("F1"));
+    helpAct->setStatusTip(tr("Show the application's Help details"));
+    connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
+
     ExportTextAct = new QAction(QIcon(":/images/exporttxt.png"), tr("Export &Text"), this);
     ExportTextAct->setShortcut(tr("Ctrl+Shift+T"));
     ExportTextAct->setStatusTip(tr("Export the current file as plain text"));
@@ -563,6 +593,7 @@ void MainWindow::createMenus()
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(aboutQtAct);
+    helpMenu->addAction(helpAct);
 }
 
 void MainWindow::createToolBars()
@@ -647,4 +678,105 @@ MdiChild *MainWindow::findMdiChild(const QString &fileName)
             return mdiChild;
     }
     return 0;
+}
+
+// If we have any passed args on startup, process them here.
+bool MainWindow::processArgs(int argc, char *argv[])
+{
+    // The commandline format is:
+    //
+    // qstripper --help
+    //
+    // or
+    //
+    // qstripper --export --fmt list_of_files
+    //
+    // Fmt is one of the following:
+    // --pdf --docbook --odf --html --text
+    //
+
+    // What's the fisrt argument passed?
+    QString optionArg = QString(argv[1]).toLower();
+
+    // Help requested?
+    if (optionArg == "--help") {
+        help();
+        return true;
+    }
+
+    // Check if we are exporting next:
+    if (optionArg == "--export") {
+        // We are exporting!
+        // Which export format?
+        QString exportFormat = QString(argv[2]).toLower();
+
+        // Valid format?
+        if (exportFormat != "--pdf" &&
+            exportFormat != "--docbook" &&
+            exportFormat != "--text" &&
+            exportFormat != "--odf" &&
+            exportFormat != "--html") {
+            QMessageBox::critical(this, "QStripper - Invalid export format", QString(argv[2]) + " is not a valid export format!");
+            return true;
+        }
+
+        // We have a valid format for export.
+
+        // For each filename passed in argv[3] onwards, export to the
+        // same folder, in the desired format.
+        MdiChild *c = new MdiChild();
+        c->setSilent(true);
+
+        for (int Files = 3; Files < argc; Files++) {
+            c->curFile = QString(argv[Files]);
+            c->loadFile(c->curFile);
+
+            if (exportFormat == "--pdf") {
+                c->PDFFile.clear();
+                c->ExportPDF();
+            }
+
+            if (exportFormat == "--docbook") {
+                c->XMLFile.clear();
+                c->ExportDocbook();
+            }
+
+            if (exportFormat == "--text") {
+                c->TXTFile.clear();
+                c->ExportText();
+            }
+
+            if (exportFormat == "--odf") {
+                c->ODFFile.clear();
+                c->ExportODF();
+            }
+
+            if (exportFormat == "--html") {
+                c->HTMLFile.clear();
+                c->ExportHTML();
+            }
+
+            // "Close" the file.
+            c->clear();
+        }
+
+        // Finished from the working window.
+        delete c;
+
+        // Don't show the GUI.
+        return true;
+
+    } else {
+        // Otherwise, we just have a list of files to open.
+        for (int Files = 1; Files < argc; Files++) {
+            openFile(argv[Files]);
+        }
+
+        // Then cascade the open windows.
+        workspace->cascade();
+
+        // Show the GUI.
+        return false;
+    }
+
 }
