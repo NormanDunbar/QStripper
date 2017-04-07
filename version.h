@@ -2,7 +2,7 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.09"
+#define QSTRIPPER_VERSION "1.10"
 
 // Version History
 //
@@ -40,5 +40,11 @@
 //        qstripper --export --fmt list_of_files
 //        fmt = --pdf, --docbook, --odf, --text or --html.
 //        Exported files are created in the same folder as the input files.
+//
+// 1.10 - Rogue formatting bug (finally) Fixed. (Derek Stewart)
+//        Caused by Quill not requiring a toggle off in the text for each toggle on. This
+//        caused the current paragraph format to get out of sync as a new paragraph toggles
+//        *all* formatting off. But the flags remained set. Sigh.
+
 
 #endif // VERSION_H
