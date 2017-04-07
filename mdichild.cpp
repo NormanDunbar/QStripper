@@ -75,11 +75,6 @@ bool MdiChild::loadFile(const QString &fileName)
     return true;
 }
 
-const int Bold = 1;
-const int Under = 2;
-const int Subscript = 4;
-const int Superscript = 8;
-
 bool MdiChild::ExportText()
 {
    QString fileName = TXTFile;

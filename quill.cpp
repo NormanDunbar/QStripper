@@ -18,13 +18,6 @@
 
 #include "quill.h"
 
-const int Bold = 1;
-const int Under = 2;
-const int Subscript = 4;
-const int Superscript = 8;
-const int Italic = 16;
-
-
 QuillDoc::~QuillDoc()
 {
     if (document) delete document;
@@ -166,29 +159,47 @@ void QuillDoc::parseText()
     // The actual text comes next. We stop when we reach offset fTextLength as
     // that is the first byte of the following Paragraph table.
 
+    // We need a cursor to keep a handle on our insertion position.
     QTextCursor cursor(document);
-    QTextCharFormat charFormat;
+
+    // Create a *paragraph* level default. This can take TABs too! (QTextOption::Tab)
+    // Currently only the background is set to a nice pale yellow.
+    // TODO: Work out how to use the tabs. Decimal? Right? Left?
+    QTextBlockFormat defaultBlockFormat;
+    defaultBlockFormat.setBackground(QColor(255, 255, 220));  // Pale Yellow.
+
+    // A default "everything off" character format for new paragraphs.
     QTextCharFormat defaultFormat;
 
     // Set default settings for everything off in new paragraphs.
     defaultFormat.setFontFamily("Courier New");
     defaultFormat.setFontPointSize(12);
+
+    // Italic off.
     defaultFormat.setFontItalic(false);
 
-    bool SuperOn = false;
-    bool SubOn = false;
+    // Super & subscript off.
     defaultFormat.setVerticalAlignment(QTextCharFormat::AlignNormal);
 
-    bool BoldOn = false;
+    // Bold off.
     defaultFormat.setFontWeight(QFont::Normal);
 
+    // Underline off.
+    defaultFormat.setFontUnderline(false);
+
+    // The current *character* format in this paragraph...
+    QTextCharFormat charFormat;
+
+
+    // Flags that toggle formatting of characters.
+    bool SuperOn = false;
+    bool SubOn = false;
+    bool BoldOn = false;
     bool UnderOn = false;
-    defaultFormat.setFontUnderline(UnderOn);
-
     bool ItalicOn = false;
-    defaultFormat.setFontItalic(ItalicOn);
 
-    // Set the current format as well - for the first (system created) paragraph.
+    // Set the current formats, plural, for the first (system created) paragraph.
+    cursor.setBlockFormat(defaultBlockFormat);
     cursor.setCharFormat(defaultFormat);
 
     // And read the format for later too.
@@ -203,8 +214,14 @@ void QuillDoc::parseText()
        switch (Char) {
          case 0 : // Paragraph end & reset attributes.
              BoldOn = UnderOn = SuperOn = SubOn = ItalicOn = false;
-             cursor.insertBlock();
-             cursor.setCharFormat(defaultFormat);
+             cursor.insertBlock(defaultBlockFormat, defaultFormat);
+
+             // Because we may still have bold etc in the charFormat we need
+             // to reinitialise it to the defaultFormat settings. We can do this
+             // by reading the current format from the cursor. This stops rogue
+             // formatting when the file doesn't *explicitly* turn off some
+             // formatting between paragraphs. (Derek Stewart reported this bug.)
+             charFormat = cursor.charFormat();
              break;
 
          case 12: break;                                  // Form Feed - ignored.
