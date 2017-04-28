@@ -45,6 +45,17 @@ MainWindow::MainWindow()
     
     // Allow drops from Explorer etc.
     setAcceptDrops(true);
+
+    // Try to make a decent size.
+    workspace->setMinimumSize(QSize(600, 480));
+
+    // Background Image.
+    //QBrush mdiBrush(QColor(255, 255, 220));
+
+    // Set up the default background imange.
+    Jupiter = QImage(":/images/Jupiter.png");
+
+    workspace->setScrollBarsEnabled(true);
 }
 
 // Slot to update the various Text Formatting Actions when the cursor moves
@@ -116,6 +127,42 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    // When we resize the main window, we want the image to remain centered.
+
+    // From here: http://stackoverflow.com/questions/18959083/qpainter-drawimage-centeraligned
+
+    // The new background image is a different size. We also need to paint on it
+    // so we need a painter too. The new image will be the new size of the window.
+    QImage newJupiter(event->size(), QImage::Format_ARGB32_Premultiplied);
+    newJupiter.fill(Qt::black);
+
+    QPainter painter(&newJupiter);
+
+    // Fetch the actual image size.
+    QRect JupiterRect(Jupiter.rect());
+
+    // Create a new image, correctly sized.
+    QRect newRect(0, 0, painter.device()->width(), painter.device()->height());
+
+    // Move the center of the image to the center of the new image.
+    // This handles when the image is bigger than the window etc.
+    //JupiterRect.moveCenter(newRect.center());
+    JupiterRect.moveTop(newRect.top());
+
+    // Draw the image, centered in the new winow's rectangle.
+    painter.drawImage(JupiterRect.topLeft(), Jupiter);
+
+    // And finally, paint the new image on the background.
+    workspace->setBackground(newJupiter);
+
+    // And we have to signal that the event has been processed.
+    // So that it doesn't go back up to the parent (QMainWindow).
+    event->accept();
+}
+
+
 void MainWindow::open()
 {
     // Attempt to open multiple files from the last directory used.
@@ -129,8 +176,10 @@ void MainWindow::open()
         openFile(fileName);
     }
 
-    // ... so cascade the current open windows.
-    workspace->cascade();
+    // ... so cascade the current open windows - only if more than one was opened.
+    if (fileNames.size() != 1) {
+        workspace->cascade();
+    }
 }
 
 void MainWindow::openFile(const QString &fileName)
@@ -157,6 +206,7 @@ void MainWindow::openFile(const QString &fileName)
     } else {
         child->close();
     }
+
 }
 
 void MainWindow::cut()
@@ -213,6 +263,13 @@ void MainWindow::ExportDocbook()
 {
     MdiChild *x = activeMdiChild();
     x->ExportDocbook();
+    workspace->setActiveWindow(x);
+}
+
+void MainWindow::ExportRST()
+{
+    MdiChild *x = activeMdiChild();
+    x->ExportRST();
     workspace->setActiveWindow(x);
 }
 
@@ -312,6 +369,7 @@ void MainWindow::help()
                "<br><b>--odf</b> - Export all files to Libre Office odf format."
                "<br><b>--docbook</b> - Export all files to Docbook XML."
                "<br><b>--html</b> - Export all files to HTML format."
+               "<br><b>--RST</b> - Export all files to ReStructuredText format."
                "<br><br>All files will be created in the <em>same folder as the input file(s).</em>"
                ));
 }
@@ -330,6 +388,7 @@ void MainWindow::updateMenus()
     ExportODFAct->setEnabled(hasMdiChild);
     ExportTextAct->setEnabled(hasMdiChild);
     ExportDocbookAct->setEnabled(hasMdiChild);
+    ExportRSTAct->setEnabled(hasMdiChild);
     cascadeAct->setEnabled(hasMdiChild);
     nextAct->setEnabled(hasMdiChild);
     previousAct->setEnabled(hasMdiChild);
@@ -520,6 +579,11 @@ void MainWindow::createActions()
     ExportODFAct->setStatusTip(tr("Export the current file as ODF"));
     connect(ExportODFAct, SIGNAL(triggered()), this, SLOT(ExportODF()));
 
+    ExportRSTAct = new QAction(QIcon(":/images/exportrst.png"), tr("Export &RST"), this);
+    ExportRSTAct->setShortcut(tr("Ctrl+Shift+R"));
+    ExportRSTAct->setStatusTip(tr("Export the current file as RST"));
+    connect(ExportRSTAct, SIGNAL(triggered()), this, SLOT(ExportRST()));
+
     TextBoldAct = new QAction(QIcon(":/images/textbold.png"), tr("&Bold"), this);
     TextBoldAct->setShortcut(Qt::CTRL + Qt::Key_B);
     QFont bold;
@@ -574,6 +638,7 @@ void MainWindow::createMenus()
     exportMenu->addAction(ExportDocbookAct);
     exportMenu->addAction(ExportPDFAct);
     exportMenu->addAction(ExportODFAct);
+    exportMenu->addAction(ExportRSTAct);
 
     textMenu = menuBar()->addMenu(tr("&Format"));
     textMenu->addAction(TextBoldAct);
@@ -613,6 +678,7 @@ void MainWindow::createToolBars()
     exportToolBar->addAction(ExportDocbookAct);
     exportToolBar->addAction(ExportPDFAct);
     exportToolBar->addAction(ExportODFAct);
+    exportToolBar->addAction(ExportRSTAct);
 
     textToolBar = addToolBar(tr("Format"));
     textToolBar->addAction(TextBoldAct);
@@ -649,16 +715,16 @@ void MainWindow::createStatusBar()
 
 void MainWindow::readSettings()
 {
-    QSettings settings("Dunbar-it", "QStripper");
+    QSettings settings("Dunbar IT Consultants Ltd", "QStripper");
     QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
-    QSize size = settings.value("size", QSize(400, 400)).toSize();
+    QSize size = settings.value("size", QSize(600, 480)).toSize();
     move(pos);
     resize(size);
 }
 
 void MainWindow::writeSettings()
 {
-    QSettings settings("Dunbar-it", "QStripper");
+    QSettings settings("Dunbar IT Consultants Ltd", "QStripper");
     settings.setValue("pos", pos());
     settings.setValue("size", size());
 }
@@ -692,7 +758,7 @@ bool MainWindow::processArgs(int argc, char *argv[])
     // qstripper --export --fmt list_of_files
     //
     // Fmt is one of the following:
-    // --pdf --docbook --odf --html --text
+    // --pdf --docbook --odf --html --text --rst
     //
 
     // What's the fisrt argument passed?
@@ -715,6 +781,7 @@ bool MainWindow::processArgs(int argc, char *argv[])
             exportFormat != "--docbook" &&
             exportFormat != "--text" &&
             exportFormat != "--odf" &&
+            exportFormat != "--rst" &&
             exportFormat != "--html") {
             QMessageBox::critical(this, "QStripper - Invalid export format", QString(argv[2]) + " is not a valid export format!");
             return true;

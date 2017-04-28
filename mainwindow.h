@@ -34,6 +34,7 @@ class QDropEvent;
 class QMimeData;
 class QFontComboBox;
 class QComboBox;
+class QImage;
 
 class MainWindow : public QMainWindow
 {
@@ -46,6 +47,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent *event);
 
 private slots:
     void open();
@@ -61,6 +63,7 @@ private slots:
     void ExportDocbook();
     void ExportPDF();
     void ExportODF();
+    void ExportRST();
     void TextBold();
     void TextSize(const QString &size);
     void TextFamily(const QString &family);
@@ -125,6 +128,7 @@ private:
     QAction *ExportPDFAct;
     QAction *ExportODFAct;
     QAction *RenameQuillAct;
+    QAction *ExportRSTAct;
     QAction *TextBoldAct;
     QAction *TextItalicAct;
     QAction *TextUnderlineAct;
@@ -137,6 +141,8 @@ private:
     QFontComboBox *comboFont;
     QComboBox *comboSize;
     QString fileName;
+
+    QImage Jupiter;
 };
 
 #endif

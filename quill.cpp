@@ -20,6 +20,7 @@
 
 QuillDoc::~QuillDoc()
 {
+    // If we have a current document, delete it.
     if (document) delete document;
 }
 
@@ -43,12 +44,16 @@ QuillDoc::QuillDoc(const QString FileName)
     fValid = false;
     fErrorMessage.clear();
     fPCFile = false;
+    fLayoutTableQL = NULL;
+    fLayoutTableDOS = NULL;
+    fParagraphTable = NULL;
+    fTabTable = NULL;
 
     // Try to load the file as raw data after performing a few checks to
     // see if it may be a Quill document.
     loadFile(FileName);
     if (fValid) {
-        // Must be a valid Quill file. Build a document from the raw contents.
+        //Build a document from the raw contents.
         parseFile();
     }
 }
@@ -95,7 +100,7 @@ void QuillDoc::loadFile(const QString FileName)
 
     if (fQuillMagic != "vrm1qdf0") {
         fValid = false;
-        fErrorMessage = QString("Header flag bytes not equal 'vrm1qdf0', actually = %1").arg(fQuillMagic);
+        fErrorMessage = QString("Header flag bytes not equal 'vrm1qdf0', actually = '%1'").arg(fQuillMagic);
         return;
     }
 
@@ -122,10 +127,10 @@ void QuillDoc::loadFile(const QString FileName)
 //------------------------------------------------------------------------------
 void QuillDoc::parseFile()
 {
-    parseText();
-    parseParagraphTable();
-    parseFreeSpaceTable();
-    parseLayoutTable();
+    parseParagraphTable();      // Sets pointers to the raw data's paragraph table.
+    parseFreeSpaceTable();      // Does nothing!!!
+    parseLayoutTable();         // Sets pointers to the raw data's layout table.
+    parseText();                // Actually reads the text!
 }
 
 //------------------------------------------------------------------------------
@@ -163,10 +168,26 @@ void QuillDoc::parseText()
     QTextCursor cursor(document);
 
     // Create a *paragraph* level default. This can take TABs too! (QTextOption::Tab)
-    // Currently only the background is set to a nice pale yellow.
     // TODO: Work out how to use the tabs. Decimal? Right? Left?
     QTextBlockFormat defaultBlockFormat;
-    defaultBlockFormat.setBackground(QColor(255, 255, 220));  // Pale Yellow.
+    //defaultBlockFormat.setBackground(QColor(255, 255, 220));  // Light Yellow.
+
+
+    // MESSING ABOUT HERE! ********************************************************
+
+    QList<QTextOption::Tab> blockTabs;
+
+    // TEST: Insert some tabs... It seems that we get the requested ones
+    // but also some others afterwards, every 60 pixels? Not what I want.
+    blockTabs << QTextOption::Tab(60, QTextOption::LeftTab)
+              << QTextOption::Tab(120, QTextOption::LeftTab)
+              << QTextOption::Tab(240, QTextOption::LeftTab)
+              << QTextOption::Tab(480, QTextOption::LeftTab) ;
+
+    defaultBlockFormat.setTabPositions(blockTabs);
+
+    // END MESSING ABOUT! *********************************************************
+
 
     // A default "everything off" character format for new paragraphs.
     QTextCharFormat defaultFormat;
@@ -186,6 +207,29 @@ void QuillDoc::parseText()
 
     // Underline off.
     defaultFormat.setFontUnderline(false);
+
+    // Green or White font. Sadly has to be set in the
+    // default character format, not in the default block format.
+    // DOS files don't appear to have a text colour, so we use GREEN for those.
+    defaultFormat.setForeground(Qt::black); // Because paper is pale yellow!
+
+    /*----------------------------------------------------------------------
+    // While I tried to use the original black paper and white or green ink
+    // it seems that setting the paper to black means that the text carat
+    // becomes invisible and this is not yet able to be changed. Sigh.
+
+    if (!fPCFile) {
+        // Try to use QL text colour...
+        if (((layoutTableQL *)fLayoutTable)->textColour == LAYOUT_TEXT_GREEN) {
+            defaultFormat.setForeground(Qt::darkGreen);
+        } else {
+            defaultFormat.setForeground(Qt::black); // Because paper is pale yellow!
+        }
+    } else {
+        // Use DOS settings - which doesn't have a text colour!
+        defaultFormat.setForeground(Qt::darkGreen);
+    }
+    ----------------------------------------------------------------------*/
 
     // The current *character* format in this paragraph...
     QTextCharFormat charFormat;
@@ -281,12 +325,15 @@ void QuillDoc::parseText()
                   continue;
                   break;
 
-       case 30: continue; break;                       // Soft hyphen - ignored.
+         case 30: continue; break;                       // Soft hyphen - ignored.
 
-       default: cursor.insertText(QString(Char));     // Everything else.
+         default: cursor.insertText(QString(Char));     // Everything else.
 
        }
     }
+
+    // Position carat at the start. It will become visible if you use the arrow keys!
+    cursor.setPosition(0);
 }
 
 //------------------------------------------------------------------------------
@@ -294,6 +341,15 @@ void QuillDoc::parseText()
 //------------------------------------------------------------------------------
 void QuillDoc::parseParagraphTable()
 {
+    // Set internal pointer to the paragraph table.
+    if (fValid) {
+        fParagraphTable = (paraTable *)(fRawFileContents.constData() + fTextLength);
+
+        // Convert the contents to Windows/Linux little endian format.
+        // Anything that's not 8 bit anyway!
+        fParagraphTable->textOffset = big2Little32(fParagraphTable->textOffset);
+        fParagraphTable->textLength = big2Little16(fParagraphTable->textLength);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -301,6 +357,7 @@ void QuillDoc::parseParagraphTable()
 //------------------------------------------------------------------------------
 void QuillDoc::parseFreeSpaceTable()
 {
+    // Do nothing.
 }
 
 //------------------------------------------------------------------------------
@@ -308,8 +365,33 @@ void QuillDoc::parseFreeSpaceTable()
 //------------------------------------------------------------------------------
 void QuillDoc::parseLayoutTable()
 {
+
+    // Set internal pointer to the layout table. Assume QL format.
+    if (fValid) {
+        if (!fPCFile) {
+            fLayoutTableQL = (layoutTableQL *)(fRawFileContents.constData() + fTextLength +
+                                               fParaTableLength +
+                                               fFreeSpaceLength);
+
+            // Convert the contents to Windows/Linux little endian format.
+            // Anything that's not 8 bit anyway!
+            fLayoutTableQL->wordCount = big2Little16(fLayoutTableQL->wordCount);
+            fLayoutTableQL->tabAreaSize = big2Little16(fLayoutTableQL->tabAreaSize);
+            fLayoutTableQL->tabAreaUsed = big2Little16(fLayoutTableQL->tabAreaUsed);
+        } else {
+            fLayoutTableDOS = (layoutTableDOS *)(fRawFileContents.constData() + fTextLength +
+                                                 fParaTableLength +
+                                                 fFreeSpaceLength);
+
+            // DOS format files are already in little Endian format!
+        }
+
+    }
 }
 
+//------------------------------------------------------------------------------
+// return a pointer to the text edit's document.
+//------------------------------------------------------------------------------
 QTextDocument *QuillDoc::getDocument()
 {
     return document;
@@ -338,7 +420,7 @@ quint8  QuillDoc::translate(const quint8 c)
             140, 149, // i circumflex
             141, 148, // i grave
             142, 160, // A umlaut
-            143, 143, // UNCHANGED
+            143, 143, // UNCHANGED (A circle)
             144, 163, // E acute
             145, 138, // ae ligature
             146, 170, // AE ligature
@@ -347,42 +429,42 @@ quint8  QuillDoc::translate(const quint8 c)
             149, 151, // o grave
             150, 155, // u circumflex
             151, 154, // u grave
-            152, 152, // UNCHANGED
+            152, 152, // UNCHANGED (y umlaut)
             153, 164, // O umlaut
             154, 167, // U umlaut
             155, 157, // cent
-            156, 156, // UNCHANGED
+            156, 156, // UNCHANGED (£)
             157, 158, // Yen
-            158, 158, // UNCHANGED
-            159, 159, // UNCHANGED
+            158, 158, // UNCHANGED (Pts)
+            159, 159, // UNCHANGED (Italic f)
             160, 140, // a grave
             161, 147, // i acute
             162, 150, // o acute
             163, 153, // u acute
             164, 137, // n tilde
             165, 169, // N tilde
-            166, 166, // UNCHANGED
-            167, 167, // UNCHANGED
+            166, 166, // UNCHANGED (a underbar)
+            167, 167, // UNCHANGED (o underbar)
             168, 180, // iquestion
-            169, 169, // UNCHANGED
-            170, 170, // UNCHANGED
-            171, 171, // UNCHANGED
-            172, 172, // UNCHANGED
-            173, 173, // UNCHANGED
-            174, 184, // Left double arrow
-            175, 185, // Right double arrow
-            176, 176, // UNCHANGED
-            177, 177, // UNCHANGED
-            178, 178, // UNCHANGED
-            179, 179, // UNCHANGED
-            180, 180, // UNCHANGED
-            181, 181, // UNCHANGED
-            182, 182, // UNCHANGED
-            183, 183, // UNCHANGED
-            184, 184, // UNCHANGED
-            185, 185, // UNCHANGED
-            186, 186, // UNCHANGED
-            187, 187}; // UNCHANGED
+            169, 169, // UNCHANGED (Like 170 but reversed.)
+            170, 170, // UNCHANGED (¬)
+            171, 171, // UNCHANGED (1/2)
+            172, 172, // UNCHANGED (1/4)
+            173, 173, // UNCHANGED (iExclamation)
+            174, 184, // <<
+            175, 185, // >>
+            176, 176, // UNCHANGED (blob)
+            177, 177, // UNCHANGED (blob)
+            178, 178, // UNCHANGED (blob)
+            179, 179, // UNCHANGED Box
+            180, 180, // UNCHANGED Box
+            181, 181, // UNCHANGED Box
+            182, 182, // UNCHANGED Box
+            183, 183, // UNCHANGED Box
+            184, 184, // UNCHANGED Box
+            185, 185, // UNCHANGED Box
+            186, 186, // UNCHANGED Box
+            187, 187}; // UNCHANGED Box
 
     static quint8 Ql2Win[] = {  // QL char, Windows char
            127, 169, // ©
@@ -439,11 +521,7 @@ quint8  QuillDoc::translate(const quint8 c)
            178, 178, // ²
            179, 161, // ¡
            180, 191, // ¿
-#ifndef __WIN32__
-           181, 128, // €
-#else
-           181, '€',  // € is different on Windows!
-#endif
+           181, 128, // €¤ EURO
            182, 167, // §
            183, 183, // ·
            184, 171, // «
@@ -461,12 +539,12 @@ quint8  QuillDoc::translate(const quint8 c)
 
         // Higher than 187 characters.
         switch (cc) {
-           case 225: cc = 156; goto ql_convert;break; // sz ligature
-           case 227: cc = 177; goto ql_convert;break; // Pi(co) (p)
-           case 230: cc = 176; goto ql_convert;break; // micro (u)
-           case 237: cc = 166; goto ql_convert;break; // O slash
-           case 246: cc = 187; goto ql_convert;break; // Divide
-           case 248: cc = 186; goto ql_convert;break; // Degree
+           case 225: cc = 156; goto ql_convert; break; // sz ligature
+           case 227: cc = 177; goto ql_convert; break; // Pi(co) (p)
+           case 230: cc = 176; goto ql_convert; break; // micro (u)
+           case 237: cc = 166; goto ql_convert; break; // O slash
+           case 246: cc = 187; goto ql_convert; break; // Divide
+           case 248: cc = 186; goto ql_convert; break; // Degree
         }
 
         // Unchanged characters
@@ -482,7 +560,7 @@ ql_convert:
     if (cc == 96) return 163;
 
     // Unchanged characters.
-    if (cc < 127 || cc > 187) return c;
+    if (cc < 127 || cc > 187) return cc;
         
     // All the rest.
     return (Ql2Win[ ((cc - 127) * 2) + 1 ]);
@@ -548,4 +626,33 @@ bool QuillDoc::isValid()
 QString QuillDoc::getError()
 {
   return fErrorMessage;
+}
+
+
+//------------------------------------------------------------------------------
+// Big Endian to Little Endian 16 bit word conversion.
+//------------------------------------------------------------------------------
+quint16 QuillDoc::big2Little16(quint16 big)
+{
+    ushort le;
+
+    le =  ((0x00ff & big) << 8);
+    le |= ((0xff00 & big) >> 8);
+
+    return le;
+}
+
+//------------------------------------------------------------------------------
+// Big Endian to Little Endian 32 bit long word conversion.
+//------------------------------------------------------------------------------
+quint32 QuillDoc::big2Little32(quint32 big)
+{
+    unsigned le;
+
+    le =  ((0x000000ff & big) << 24);
+    le |= ((0x0000ff00 & big) << 8);
+    le |= ((0x00ff0000 & big) >> 8);
+    le |= ((0xff000000 & big) >> 24);
+
+    return le;
 }
