@@ -23,5 +23,7 @@
         <file>images/textsuperscript.png</file>
         <file>images/quill.jpg</file>
         <file>images/exportodf.png</file>
+        <file>images/Jupiter.png</file>
+        <file>images/exportrst.png</file>
     </qresource>
 </RCC>

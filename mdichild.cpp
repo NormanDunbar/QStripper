@@ -36,12 +36,8 @@ MdiChild::MdiChild()
     connect(this, SIGNAL(currentCharFormatChanged(const QTextCharFormat &)),
             this, SIGNAL(FormatChanged(const QTextCharFormat &)));
 
-    // Playing now!
-    // setTextBackgroundColor(QColor(0,0,0));   // Black
-    // setTextColor(QColor(0,255,0));     // Green
-    //setFontFamily("Courier New");
-    //setFontPointSize(12);
-    setTabStopWidth(40);
+    // Try to make a decent size.
+    setMinimumSize(QSize(400, 250));
 }
 
 // Reimplemented to force a call to FormatChanged() when we
@@ -72,6 +68,7 @@ bool MdiChild::loadFile(const QString &fileName)
     setDocument(Input->getDocument());
     setFocus();
     setCurrentFile(fileName);
+
     return true;
 }
 
@@ -102,13 +99,17 @@ bool MdiChild::ExportText()
         return false;
     }
 
-    QTextStream out(&file);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QTextDocumentWriter txt;
+    txt.setFormat("plaintext");
+    txt.setCodec(QTextCodec::codecForName("UTF-8"));
+    txt.setFileName(fileName);
 
-    out << toPlainText();
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    txt.write(document());
     QApplication::restoreOverrideCursor();
 
     TXTFile = fileName;
+    document()->setModified(false);
     return true;
 }
 
@@ -138,7 +139,7 @@ bool MdiChild::ExportHTML()
                              .arg(file.errorString()));
         return false;
     }
-
+/*
     QTextStream out(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -148,8 +149,17 @@ bool MdiChild::ExportHTML()
     //-------------------------------------------------------------------
     out << toHtml();
     QApplication::restoreOverrideCursor();
+*/
+    QTextDocumentWriter html;
+    html.setFormat("HTML");
+    html.setCodec(QTextCodec::codecForName("UTF-8"));
+    html.setFileName(fileName);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    html.write(document());
+    QApplication::restoreOverrideCursor();
 
     HTMLFile = fileName;
+    document()->setModified(false);
     return true;
 }
 
@@ -174,8 +184,13 @@ bool MdiChild::ExportPDF()
     QPrinter Pdf(QPrinter::HighResolution);
     Pdf.setOutputFormat(QPrinter::PdfFormat);
     Pdf.setOutputFileName(fileName);
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     document()->print(&Pdf);
+    QApplication::restoreOverrideCursor();
+
     PDFFile = fileName;
+    document()->setModified(false);
     return true;
 }
 
@@ -200,8 +215,13 @@ bool MdiChild::ExportODF()
     QTextDocumentWriter odf;
     odf.setFormat("odf");
     odf.setFileName(fileName);
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     odf.write(document());
+    QApplication::restoreOverrideCursor();
+
     ODFFile = fileName;
+    document()->setModified(false);
     return true;
 }
 
@@ -215,7 +235,7 @@ bool MdiChild::ExportDocbook()
    }
 
     if (!silentRunning)
-        fileName = QFileDialog::getSaveFileName(this, "Export PDF", fileName, "XML files (*.xml)");
+        fileName = QFileDialog::getSaveFileName(this, "Export DocBook", fileName, "XML files (*.xml)");
 
     if (fileName.isEmpty())
         return false;
@@ -259,7 +279,7 @@ bool MdiChild::ExportDocbook()
     out << "<title>" << ArticleTitle << "</title>\n";
 
     // Iterate over all text blocks in the document and process each one
-    // as a paragraph. Empty paragraphe are ignored.
+    // as a paragraph. Empty paragraphs are ignored.
     QTextBlock tb = document()->begin();
     while (tb.isValid()) {
         QString Paragraph = DocBookParagraph(tb);
@@ -274,8 +294,10 @@ bool MdiChild::ExportDocbook()
 
     QApplication::restoreOverrideCursor();
     XMLFile = fileName;
+    document()->setModified(false);
     return true;
 }
+
 
 // For each and every paragraph, iterate over each fragment of text,
 // where we build up an XML 'statement'.
@@ -366,6 +388,152 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
         case QTextCharFormat::AlignBaseline: break;
      }
      
+     return ThisText;
+}
+
+
+// Export a document in ReStructuredText, in UTF8 encoding.
+bool MdiChild::ExportRST()
+{
+   QString fileName = RSTFile;
+   if (fileName.isEmpty()) {
+     fileName = filePath(curFile) + "/" +
+                fileBasename(curFile) +
+                ".rst";
+   }
+
+    if (!silentRunning)
+        fileName = QFileDialog::getSaveFileName(this, "Export RST", fileName, "RST files (*.rst)");
+
+    if (fileName.isEmpty())
+        return false;
+
+    if (fileExtension(fileName).toLower() != "rst")
+        fileName += ".rst";
+
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("QStripper"),
+                             tr("Cannot write ReStructuredText (RST) file %1:\n%2.")
+                             .arg(fileName)
+                             .arg(file.errorString()));
+        return false;
+    }
+
+    // Ask user for a title for the RST Document.
+    bool ok = false;
+    QString ArticleTitle;
+
+    if (!silentRunning)
+        ArticleTitle= QInputDialog::getText(this,
+                                            tr("Enter Article Title"),
+                                            tr("Please enter a title for the article"),
+                                            QLineEdit::Normal, "", &ok);
+    if (!ok) {
+       ArticleTitle = "==========\n"
+                      "YOUR TITLE\n"
+                      "==========\n\n";
+    } else {
+        // Work out under and overlines for the title.
+        int titleSize = ArticleTitle.size();
+        QString overUnderLine = QString().fill('=', titleSize) + "\n";
+        ArticleTitle = overUnderLine + ArticleTitle + "\n" + overUnderLine;
+    }
+
+
+    QTextStream out(&file);
+
+    // Pandoc and other converters require UTF8.
+    out.setCodec(QTextCodec::codecForName("UTF-8"));
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    // Make this an article, so get a title from the user.
+    out << ArticleTitle;
+
+    // Iterate over all text blocks in the document and process each one
+    // as a paragraph. Empty paragraphs are ignored.
+    QTextBlock tb = document()->begin();
+    while (tb.isValid()) {
+        QString Paragraph = RSTParagraph(tb);
+        if (!Paragraph.isEmpty())
+        out << endl << Paragraph << endl;
+
+        tb = tb.next();
+    }
+
+    // Finish off the article.
+    out << endl;
+
+    QApplication::restoreOverrideCursor();
+    RSTFile = fileName;
+    document()->setModified(false);
+    return true;
+}
+
+
+// For each and every paragraph, iterate over each fragment of text.
+QString MdiChild::RSTParagraph(const QTextBlock &ThisBlock)
+{
+    QString Paragraph;
+    for (QTextBlock::iterator it = ThisBlock.begin(); !it.atEnd(); it++) {
+      QTextFragment tf = it.fragment();
+      Paragraph += RSTFragment(tf);
+    }
+
+    return Paragraph;
+}
+
+// This is where we process each paragraph's text fragments and remove
+// invalid RST characters.
+QString MdiChild::RSTFragment(const QTextFragment &ThisFragment)
+{
+    QTextCharFormat Format = ThisFragment.charFormat();
+    QString ThisText = ThisFragment.text();
+
+    QString euroInput = QString(QChar(0x80));
+    QString euroOutput = QString(QChar(0xE2)) + QString(QChar(0x82)) + QString(QChar(0xac));
+
+    if (!ThisText.isEmpty()) {
+         // Do '\' first or else you get all sorts of stuff going wrong!
+         ThisText.replace(QString("\\"), QString("\\\\"));
+         ThisText.replace(QString("_"), QString("\\_"));
+         ThisText.replace(QString("$"), QString("\\$"));
+         //ThisText.replace(QString("\t"), QString("    "));
+         ThisText.replace(QString("`"), QString("\\`"));
+         ThisText.replace(euroInput, euroOutput);
+    }
+
+    // Here we try to decode what text attributes have been applied
+    // and return a suitable XML 'statment' to accomodate them.
+    // BEWARE: if an italic fragment has leading whitspace, the
+    //         italics wont work in RST as no whitespace is permitted.
+    if (Format.font().italic())
+       return "*" + ThisText + "*\\ ";
+
+    // There is no underline in RST. :-(
+    if (Format.font().underline())
+       return ThisText;
+
+    // BEWARE: if a bold fragment has leading whitspace, the bold
+    //         bold wont work in RST as no whitespace is permitted.
+    if (Format.font().bold())
+       return "**" + ThisText + "**\\ ";
+
+     switch (Format.verticalAlignment()) {
+        case QTextCharFormat::AlignNormal: return ThisText;
+        case QTextCharFormat::AlignSuperScript: return ":sup:`" +
+                                                       ThisText +
+                                                       "`\\ ";
+        case QTextCharFormat::AlignSubScript: return ":sub:`" +
+                                                       ThisText +
+                                                       "`\\ ";
+        case QTextCharFormat::AlignMiddle: break;
+        case QTextCharFormat::AlignTop: break;
+        case QTextCharFormat::AlignBottom: break;
+        case QTextCharFormat::AlignBaseline: break;
+     }
+
      return ThisText;
 }
 
