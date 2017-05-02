@@ -433,7 +433,7 @@ quint8  QuillDoc::translate(const quint8 c)
             153, 164, // O umlaut
             154, 167, // U umlaut
             155, 157, // cent
-            156, 156, // UNCHANGED (£)
+            156, 156, // UNCHANGED (UK Pound)
             157, 158, // Yen
             158, 158, // UNCHANGED (Pts)
             159, 159, // UNCHANGED (Italic f)
@@ -447,7 +447,7 @@ quint8  QuillDoc::translate(const quint8 c)
             167, 167, // UNCHANGED (o underbar)
             168, 180, // iquestion
             169, 169, // UNCHANGED (Like 170 but reversed.)
-            170, 170, // UNCHANGED (¬)
+            170, 170, // UNCHANGED (???)
             171, 171, // UNCHANGED (1/2)
             172, 172, // UNCHANGED (1/4)
             173, 173, // UNCHANGED (iExclamation)
@@ -489,7 +489,7 @@ quint8  QuillDoc::translate(const quint8 c)
            146, 239, // i umlaut
            147, 237, // i acute
            148, 236, // i grave
-           149, 238, // î circumflex
+           149, 238, // i circumflex
            150, 243, // o acute
            151, 242, // o grave
            152, 244, // o circumflex
@@ -513,7 +513,7 @@ quint8  QuillDoc::translate(const quint8 c)
            170, 198, // AE ligature
            171, 140, // OE Ligature
            172, 172, // ???
-           173, 173, // ­???
+           173, 173, // ???
            174, 174, // ???
            175, 175, // ???
            176, 181, // Mu (micro as in u)
@@ -521,7 +521,7 @@ quint8  QuillDoc::translate(const quint8 c)
            178, 178, // ???
            179, 161, // iexclamation (upsside down !)
            180, 191, // iquestion (upside down ?)
-           181, 128, // €Euro
+           181, 128, // Euro
            182, 167, // Section marker
            183, 183, // ???
            184, 171, // Double left arrow <<
@@ -534,7 +534,7 @@ quint8  QuillDoc::translate(const quint8 c)
 
     // If this is a PC file, convert from DOS to QL first...
     if (fPCFile) {
-        // Pound Sterling sign (£)
+        // Pound Sterling.
         if (cc == 156) {cc = 96; goto ql_convert;}
 
         // Higher than 187 characters.
@@ -556,7 +556,7 @@ quint8  QuillDoc::translate(const quint8 c)
 
 ql_convert:
     // Now convert from QL to Windows.
-    // Pound Sterling sign (£).
+    // Pound Sterling.
     if (cc == 96) return 163;
 
     // Unchanged characters.
