@@ -492,7 +492,7 @@ QString MdiChild::RSTFragment(const QTextFragment &ThisFragment)
     QString ThisText = ThisFragment.text();
 
     QString euroInput = QString(QChar(0x80));
-    QString euroOutput = QString(QChar(0xE2)) + QString(QChar(0x82)) + QString(QChar(0xac));
+    QString euroOutput = QString(QChar(0x20ac));  // Unicode U+20AC for Euro.
 
     if (!ThisText.isEmpty()) {
          // Do '\' first or else you get all sorts of stuff going wrong!

@@ -6,7 +6,7 @@
 
 // Version History
 //
-// 1.12 - Added automatic scroll bars to the workspace so that if a n opened file
+// 1.12 - Added automatic scroll bars to the workspace so that if an opened file
 //        hangs over the main window border, it can be scrolled to, if necessary.
 //        Added Jupiter background. Just because!
 //        Settings now stored in "Dunbar IT Consultants Ltd" and not in "Dunbar-it"
