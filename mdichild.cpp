@@ -496,8 +496,10 @@ QString MdiChild::RSTFragment(const QTextFragment &ThisFragment)
 
     if (!ThisText.isEmpty()) {
          // Do '\' first or else you get all sorts of stuff going wrong!
+         // And '\' needs to be escaped, so becomes '\\' - don't forget!
          ThisText.replace(QString("\\"), QString("\\\\"));
          ThisText.replace(QString("_"), QString("\\_"));
+         ThisText.replace(QString("*"), QString("\\*"));
          ThisText.replace(QString("$"), QString("\\$"));
          //ThisText.replace(QString("\t"), QString("    "));
          ThisText.replace(QString("`"), QString("\\`"));
