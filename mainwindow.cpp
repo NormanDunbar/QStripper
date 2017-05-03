@@ -166,17 +166,16 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 void MainWindow::open()
 {
     // Attempt to open multiple files from the last directory used.
-    //fileName = QFileDialog::getOpenFileName(this, tr("Open Quill Document"), fileName);
     QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open Quill Documents"), fileName);
 
-    // Open all the files. This looks like only the final one opened ...
+    // Open all the files. This looks like only the final one opened, so ...
     QStringList::const_iterator ci;
     for (ci = fileNames.constBegin(); ci != fileNames.constEnd(); ++ci) {
         fileName = (*ci);
         openFile(fileName);
     }
 
-    // ... so cascade the current open windows - only if more than one was opened.
+    // ... cascade the current open windows - only if more than one was opened.
     if (fileNames.size() != 1) {
         workspace->cascade();
     }
@@ -199,7 +198,7 @@ void MainWindow::openFile(const QString &fileName)
     MdiChild *child = createMdiChild();
     if (child->loadFile(fileName)) {
         // Each child has a signal when the text format changes, hook this up to
-        // our own slot so that we cah set/unset the various font formatting actions.
+        // our own slot so that we can set/unset the various font formatting actions.
         connect(child, SIGNAL(FormatChanged(const QTextCharFormat &)), this, SLOT(FormatChanged(const QTextCharFormat &)));
         statusBar()->showMessage(tr("File loaded"), 2000);
         child->showMaximized();
