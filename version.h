@@ -6,11 +6,11 @@
 
 // Version History
 //
-// 1.14 - Added a long needed "recent files" option to the file menu. The last 10
+// 1.13 - FINALLY!!! Fixed that damned Euro! It now displays in the editor and exports!
+//        Added a long needed "recent files" option to the file menu. The last 10
 //        opened files will be found here - assuming that they still exist of course.
 //        They can be opened with CTRL + 1 through CTRL + 0 - if you remember the order!
 //
-// 1.13 - FINALLY!!! Fixed that damned Euro! It now displays in the editor and exports!
 //
 // 1.12 - Added automatic scroll bars to the workspace so that if an opened file
 //        hangs over the main window border, it can be scrolled to, if necessary.
