@@ -166,7 +166,7 @@ private:
     void    parseFreeSpaceTable();          // Ignore the free space table.
     void    parseLayoutTable();             // Parse the layout table.
 
-    quint8  translate(const quint8 c);      // Convert from QDOS to Win/Lin chars.
+    QChar  translate(const quint8 c);      // Convert from QDOS to Win/Lin chars.
 
     // Convert from QL big end to PC/Linux Little end.
     quint16 big2Little16(quint16 big);

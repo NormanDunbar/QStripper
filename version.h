@@ -2,9 +2,11 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.12"
+#define QSTRIPPER_VERSION "1.13"
 
 // Version History
+//
+// 1.13 - FINALLY!!! Fixed that damned Euro! It now displays in the editor and exports!
 //
 // 1.12 - Added automatic scroll bars to the workspace so that if an opened file
 //        hangs over the main window border, it can be scrolled to, if necessary.

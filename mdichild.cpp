@@ -265,8 +265,17 @@ bool MdiChild::ExportDocbook()
        ArticleTitle = "**** PUT YOUR TITLE HERE PLEASE ****";
     }
 
+/*
+txt.setCodec(QTextCodec::codecForName("UTF-8"));
+txt.setFileName(fileName);
+
+QApplication::setOverrideCursor(Qt::WaitCursor);
+txt.write(document());
+QApplication::restoreOverrideCursor();
+ */
 
     QTextStream out(&file);
+    out.setCodec(QTextCodec::codecForName("ISO-8859-15"));
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     // XML header first.
@@ -325,7 +334,7 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
     // We've got hard spaces, +/- etc in the text to translate.
     char Nbsp = 0xA0;
     char PlusMinus = 0xB1;
-    char Euro = 0x80;
+    QChar Euro = 0x20ac;
 
     // This could be helpful ???? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     /*
@@ -360,7 +369,7 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
          ThisText.replace(QString("\t"), QString("    "));
          ThisText.replace(QString(PlusMinus), QString("&plusmn;"));
          ThisText.replace(QString(Nbsp), QString(" "));
-         ThisText.replace(QString(Euro), QString("&euro;"));
+         //ThisText.replace(QString(Euro), QString("&euro;"));
     }
 
     // Here we try to decode what text attributes have been applied
@@ -503,7 +512,7 @@ QString MdiChild::RSTFragment(const QTextFragment &ThisFragment)
          ThisText.replace(QString("$"), QString("\\$"));
          //ThisText.replace(QString("\t"), QString("    "));
          ThisText.replace(QString("`"), QString("\\`"));
-         ThisText.replace(euroInput, euroOutput);
+         //ThisText.replace(euroInput, euroOutput);
     }
 
     // Here we try to decode what text attributes have been applied

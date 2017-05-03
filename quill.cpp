@@ -142,6 +142,7 @@ void QuillDoc::parseText()
     // the header and footer - which may be blank. The terminating byte of zero
     // will always be found. (All paragraphs are terminated by a zero byte.)
     quint8 Char;
+    QChar qChar;
 
     // Header first.
     fRawPointer = 20;       // Always the start of the text area.
@@ -149,16 +150,16 @@ void QuillDoc::parseText()
      do {
        Char = fRawFileContents[fRawPointer++];  // Points to NEXT character now.
        if (Char == 0) break;
-       Char = translate(Char);
-       fHeader.append(Char);
+       qChar = translate(Char);
+       fHeader.append(qChar);
     } while (1);
 
     // Footer next.
     do {
        Char = fRawFileContents[fRawPointer++];  // Points to NEXT character now.
        if (Char == 0) break;
-       Char = translate(Char);
-       fFooter.append(Char);
+       qChar = translate(Char);
+       fFooter.append(qChar);
     } while (1);
 
     // The actual text comes next. We stop when we reach offset fTextLength as
@@ -252,7 +253,7 @@ void QuillDoc::parseText()
     // And now, process the text contents.
     while (fRawPointer < fTextLength) {
        Char = fRawFileContents[fRawPointer++];
-       Char = translate(Char);
+       qChar = translate(Char);
 
        // Process each character to see if it is a control code or not.
        switch (Char) {
@@ -327,7 +328,7 @@ void QuillDoc::parseText()
 
          case 30: continue; break;                       // Soft hyphen - ignored.
 
-         default: cursor.insertText(QString(Char));     // Everything else.
+         default: cursor.insertText(qChar);     // Everything else.
 
        }
     }
@@ -401,6 +402,7 @@ QTextDocument *QuillDoc::getDocument()
 //------------------------------------------------------------------------------
 // Returns a Windows (iso-latin) character for a given QDOS character.
 //------------------------------------------------------------------------------
+/*
 quint8  QuillDoc::translate(const quint8 c)
 {
     static quint8 Dos2QL[] = {  // DOS char, QL Char
@@ -564,6 +566,141 @@ ql_convert:
         
     // All the rest.
     return (Ql2Win[ ((cc - 127) * 2) + 1 ]);
+}
+*/
+
+//------------------------------------------------------------------------------
+// Returns a QChar (in Unicode) for a given PC/QDOS character.
+//------------------------------------------------------------------------------
+QChar  QuillDoc::translate(const quint8 c)
+{
+    // Stolen from http://svn.openmoko.org/trunk/src/host/qemu-neo1973/phonesim/lib/serial/qatutils.cpp
+
+    // The following table converts any DOS CP437 character into
+    // a suitable Unicode character. I'm not sure what the EURO will
+    // do as that was never part of CP437!
+
+    static ushort DOS2Unicode[256] = {
+         0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007,
+         0x0008, 0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x000e, 0x000f,
+         0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016, 0x0017,
+         0x0018, 0x0019, 0x001c, 0x001b, 0x007f, 0x001d, 0x001e, 0x001f,
+         0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027,
+         0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f,
+         0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,
+         0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e, 0x003f,
+         0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+         0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f,
+         0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,
+         0x0058, 0x0059, 0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f,
+         0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,
+         0x0068, 0x0069, 0x006a, 0x006b, 0x006c, 0x006d, 0x006e, 0x006f,
+         0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,
+         0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d, 0x007e, 0x001a,
+         0x00c7, 0x00fc, 0x00e9, 0x00e2, 0x00e4, 0x00e0, 0x00e5, 0x00e7,
+         0x00ea, 0x00eb, 0x00e8, 0x00ef, 0x00ee, 0x00ec, 0x00c4, 0x00c5,
+         0x00c9, 0x00e6, 0x00c6, 0x00f4, 0x00f6, 0x00f2, 0x00fb, 0x00f9,
+         0x00ff, 0x00d6, 0x00dc, 0x00a2, 0x00a3, 0x00a5, 0x20a7, 0x0192,
+         0x00e1, 0x00ed, 0x00f3, 0x00fa, 0x00f1, 0x00d1, 0x00aa, 0x00ba,
+         0x00bf, 0x2310, 0x00ac, 0x00bd, 0x00bc, 0x00a1, 0x00ab, 0x00bb,
+         0x2591, 0x2592, 0x2593, 0x2502, 0x2524, 0x2561, 0x2562, 0x2556,
+         0x2555, 0x2563, 0x2551, 0x2557, 0x255d, 0x255c, 0x255b, 0x2510,
+         0x2514, 0x2534, 0x252c, 0x251c, 0x2500, 0x253c, 0x255e, 0x255f,
+         0x255a, 0x2554, 0x2569, 0x2566, 0x2560, 0x2550, 0x256c, 0x2567,
+         0x2568, 0x2564, 0x2565, 0x2559, 0x2558, 0x2552, 0x2553, 0x256b,
+         0x256a, 0x2518, 0x250c, 0x2588, 0x2584, 0x258c, 0x2590, 0x2580,
+         0x03b1, 0x00df, 0x0393, 0x03c0, 0x03a3, 0x03c3, 0x03bc, 0x03c4,
+         0x03a6, 0x0398, 0x03a9, 0x03b4, 0x221e, 0x03c6, 0x03b5, 0x2229,
+         0x2261, 0x00b1, 0x2265, 0x2264, 0x2320, 0x2321, 0x00f7, 0x2248,
+         0x00b0, 0x2219, 0x00b7, 0x221a, 0x207f, 0x00b2, 0x25a0, 0x00a0
+    };
+
+
+
+    // MOST of the QL Character set is valid ASCII, so anything under 127 or over
+    // 188 should be returned as a QChar with the same ASCII code.
+    // Anything else needs converting to Unicode.
+
+    static ushort QL2Unicode[] = {  // QL char, Windows char
+         169, // Copyright (c)    (127)
+         228, // a umlaut (128)
+         227, // a tilde  (129)
+         229, // a circle (130)
+         233, // e acute  (131)
+         246, // o umlaut (132)
+         245, // o tilde  (133)
+         248, // o with / (134)
+         252, // u umlaut (135)
+         231, // c cedilla    (136)
+         241, // n tilde  (137)
+         230, // ae ligature  (138)
+         339, // oe Ligature (Deprecated in Unicode)  (139)
+         225, // a acute  (140)
+         224, // a grave  (141)
+         226, // a circumflex (a^)    (142)
+         235, // e umlaut (143)
+         232, // e grave  (144)
+         234, // e circumflex (145)
+         239, // i umlaut (146)
+         237, // i acute  (147)
+         236, // i grave  (148)
+         238, // i circumflex (149)
+         243, // o acute  (150)
+         242, // o grave  (151)
+         244, // o circumflex (152)
+         250, // u acute  (153)
+         249, // u grave  (154)
+         251, // u circumflex (155)
+         223, // sz ligature (German B?)  (156)
+         162, // cent (157)
+         165, // Yen  (158)
+         180, // acute    (159)
+         196, // A umlaut (160)
+         195, // A tilde  (161)
+         194, // A circumflex (162)
+         201, // E acute  (163)
+         214, // O umlaut (164)
+         213, // O tilde  (165)
+         216, // O with / (166)
+         220, // U umlaut (167)
+         199, // C cedilla    (168)
+         209, // N tilde  (169)
+         198, // AE ligature  (170)
+         338, // OE Ligature (Deprecated in Unicode)  (171)
+         0x03B1, // Lower case alpha. (172)
+         0x03B4, // Lower case delta  (173)
+         0x0398, // Upper case theta  (174)
+         0x03BB, // Lower case lambda (175)
+         0x03BC, // Lower case Mu (micro as in u) (176)
+         0x03C6, // Lower case phi (as in p)  (177)
+         0x03A6, // Upper case phi    (178)
+         161, // iexclamation (upside down !) (179)
+         191, // iquestion (upside down ?)    (180)
+         0x20AC, // Euro  (181)
+         167, // Section marker   (182)
+         0x2295, // Cross circle ???????????????????????????  (183)
+         171, // French Quote <<  (184)
+         187, // French Quote >>  (185)
+         176, // Degree   (186)
+         247  // Divide  (187)
+    };
+
+
+    // A DOS file is "supposed" to be in Code Page 437 encoding. If we have
+    // a DOS file, then the DOS2Unicode table above should (!) be correct.
+
+
+    quint8 cc = c;
+
+    // Usually, I suspect, we have to convert a QL file, not PC:
+    if (!fPCFile) {
+        if (cc == 96) return QChar(163);                // Pound Sterling.
+        if (cc < 127 || cc > 187) return QChar(cc);     // Unchanged.
+        return QChar(QL2Unicode[(cc - 127)]);           // Translated.
+    } else {
+        // Must be a PC file.
+        return QChar(DOS2Unicode[cc]);
+    }
 }
 
 
