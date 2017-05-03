@@ -31,6 +31,10 @@ MainWindow::MainWindow()
     windowMapper = new QSignalMapper(this);
     connect(windowMapper, SIGNAL(mapped(QWidget *)), workspace, SLOT(setActiveWindow(QWidget *)));
 
+    setWindowIcon(QIcon(":/images/quill.jpg"));
+    setWindowTitle(tr("QStripper Open Source Edition"));
+    fileName.clear();
+
     createActions();
     createMenus();
     createToolBars();
@@ -39,10 +43,6 @@ MainWindow::MainWindow()
 
     readSettings();
 
-    setWindowIcon(QIcon(":/images/quill.jpg"));
-    setWindowTitle(tr("QStripper Open Source Edition"));
-    fileName.clear();
-    
     // Allow drops from Explorer etc.
     setAcceptDrops(true);
 
@@ -202,7 +202,12 @@ void MainWindow::openFile(const QString &fileName)
         connect(child, SIGNAL(FormatChanged(const QTextCharFormat &)), this, SLOT(FormatChanged(const QTextCharFormat &)));
         statusBar()->showMessage(tr("File loaded"), 2000);
         child->showMaximized();
+
+        // Sort out recent files list etc.
+        adjustForCurrentFile(fileName);
+
     } else {
+        // Failed to load a file.
         child->close();
     }
 
@@ -336,14 +341,14 @@ void MainWindow::about()
                "</b></h1><br>"
                "<b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
                "open multiple QL Quill documents and save them in various (other) formats."
-               "<br>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
-               "<br><ul>"
+               "<br><b>QStripper</b> can export Quill documents in the following formats:"
+               "<ul>"
                "<li>Text<li>Html<li>Docbook XML<li>PDF<li>ODF: Open Document Format for Open/Libre Office"
                "<li>RST: ReStructuredText"
-               "</ul><hr>"
-               "<b>Contact Details :</b><br><br>"
-               "Web site : <b>http://qdosmsq.dunbar-it.co.uk</b><br>"
-               "Email : Norman@Dunbar-it.co.uk<hr>"
+               "</ul>"
+               "<hr>"
+               "QStripper's own Web site is at: <b>http://qstripper.sourceforge.net/</b>"
+               "<hr>"
                "The source code for this application is available from SourceForge, as follows, using Subversion:"
                "<br><br><b>svn checkout https://svn.code.sf.net/p/qstripper/code/ qstripper</b>"
                "<br><br>or as a daily snapshot (in tar format) from</br>"
@@ -371,7 +376,7 @@ void MainWindow::help()
                "<br><b>--odf</b> - Export all files to Libre Office odf format."
                "<br><b>--docbook</b> - Export all files to Docbook XML."
                "<br><b>--html</b> - Export all files to HTML format."
-               "<br><b>--RST</b> - Export all files to ReStructuredText format."
+               "<br><b>--rst</b> - Export all files to ReStructuredText format."
                "<br><br>All files will be created in the <em>same folder as the input file(s).</em>"
                ));
 }
@@ -617,6 +622,20 @@ void MainWindow::createActions()
     TextSuperscriptAct = new QAction(QIcon(":/images/textsuperscript.png"), tr("SuperScript"), this);
     connect(TextSuperscriptAct, SIGNAL(triggered()), this, SLOT(TextSuperScript()));
     TextSuperscriptAct->setCheckable(true);
+
+    // Keep a list of recent files in a QAction array.
+    // Up to 5 will be kept.
+    QAction *recentFileAction = 0;
+    for (int i = 0; i < maxRecentFiles; i++) {
+        recentFileAction = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
+        recentFileAction->setVisible(false);
+
+        // Shortcut is CTRL + 1 through CTRL + 0.
+        recentFileAction->setShortcut(Qt::CTRL + QKeySequence::fromString(QString::number((i+1) % 10)));
+
+        QObject::connect(recentFileAction, SIGNAL(triggered()), this, SLOT(openRecent()));
+        recentFileActionList.append(recentFileAction);
+    }
 }
 
 
@@ -624,6 +643,14 @@ void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(openAct);
+
+    // Recent Files sub-menu.
+    recentFilesMenu = fileMenu->addMenu(tr("Open Recent Files"));
+    for (int i = 0; i < maxRecentFiles; i++) {
+        recentFilesMenu->addAction(recentFileActionList.at(i));
+    }
+    updateRecentActionList();
+
     fileMenu->addSeparator();
     fileMenu->addAction(FilePrintAct);
     fileMenu->addSeparator();
@@ -848,4 +875,80 @@ bool MainWindow::processArgs(int argc, char *argv[])
         return false;
     }
 
+}
+
+
+// Open one of the recently opened files.
+void MainWindow::openRecent(){
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (action)
+        openFile(action->data().toString());
+}
+
+// Deal with recent files.
+// Promotes the current file to the first one, then deletes anything
+// older than the maxRecentFiles value.
+void MainWindow::adjustForCurrentFile(const QString &filePath){
+
+    QSettings settings("Dunbar IT Consultants Ltd", "QStripper");
+    QStringList recentFilePaths = settings.value("recentFiles").toStringList();
+
+    // Remove the latest file from its current position, if there.
+    recentFilePaths.removeAll(filePath);
+
+    // And add it at the front.
+    recentFilePaths.prepend(filePath);
+
+    // Strip off everything after the maximum number allowed.
+    while (recentFilePaths.size() > maxRecentFiles) {
+        recentFilePaths.removeLast();
+    }
+
+    // Update settings in registry or whatever.
+    settings.setValue("recentFiles", recentFilePaths);
+
+    // And redo the menu.
+    updateRecentActionList();
+}
+
+// Read the settinsg for the recent files list
+// and update the menu.
+// Also, sets the last used path to be that of the first entry.
+// Subsequent file->open will default there.
+void MainWindow::updateRecentActionList() {
+
+    QSettings settings("Dunbar IT Consultants Ltd", "QStripper");
+    QStringList recentFilePaths =
+            settings.value("recentFiles", "NOTHING YET!").toStringList();
+
+    // If we got the default, bale out - no recent files.
+    if (recentFilePaths.at(0) == "NOTHING YET!") {
+        return;
+    }
+
+    int itEnd = 0;
+    if(recentFilePaths.size() <= maxRecentFiles)
+        itEnd = recentFilePaths.size();
+    else
+        itEnd = maxRecentFiles;
+
+    for (int i = 0; i < itEnd; ++i) {
+        // We are no longer interested in files that have been deleted or moved etc.
+        if (QFileInfo(recentFilePaths.at(i)).exists()) {
+            QString strippedName = QFileInfo(recentFilePaths.at(i)).fileName();
+            recentFileActionList.at(i)->setText(strippedName);
+            recentFileActionList.at(i)->setData(recentFilePaths.at(i));
+            recentFileActionList.at(i)->setVisible(true);
+            // Status bar tooltip is the full path.
+            recentFileActionList.at(i)->setStatusTip(recentFilePaths.at(i));
+        }
+    }
+
+    // Hide any thing up to the last allowed filename - if never opened.
+    for (int i = itEnd; i < maxRecentFiles; ++i)
+        recentFileActionList.at(i)->setVisible(false);
+
+    // And set the default file->open path to the most recent of the
+    // recent files list.
+    fileName = recentFilePaths.at(0);
 }

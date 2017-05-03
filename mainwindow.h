@@ -75,6 +75,7 @@ private slots:
     void FormatChanged(const QTextCharFormat &Format);
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
+    void openRecent();
 
     MdiChild *createMdiChild();
 
@@ -87,6 +88,8 @@ private:
     void writeSettings();
     MdiChild *activeMdiChild();
     MdiChild *findMdiChild(const QString &fileName);
+    void updateRecentActionList();
+    void adjustForCurrentFile(const QString &filePath);
 
     NDWorkspace *workspace;
     QSignalMapper *windowMapper;
@@ -98,6 +101,7 @@ private:
     QMenu *helpMenu;
     QMenu *toolsMenu;
     QMenu *textMenu;
+    QMenu *recentFilesMenu;
 
     QToolBar *fileToolBar;
     QToolBar *editToolBar;
@@ -143,6 +147,8 @@ private:
     QString fileName;
 
     QImage Jupiter;
+    QList<QAction *> recentFileActionList;
+    enum {maxRecentFiles = 10};
 };
 
 #endif
