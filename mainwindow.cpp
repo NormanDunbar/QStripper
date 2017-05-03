@@ -338,12 +338,15 @@ void MainWindow::about()
                "<b>QStripper</b> allows Windows and Linux (Unix too ?) users the ability to "
                "open multiple QL Quill documents and save them in various (other) formats."
                "<br>Hopefully, you'll be able to save (export) Quill documents in the following formats : "
-               "<br><ul><li>Text<li>Html<li>Docbook XML<li>PDF<li>ODF: Open Document Format for Open/Libre Office</ul><hr>"
+               "<br><ul>"
+               "<li>Text<li>Html<li>Docbook XML<li>PDF<li>ODF: Open Document Format for Open/Libre Office"
+               "<li>RST: ReStructuredText"
+               "</ul><hr>"
                "<b>Contact Details :</b><br><br>"
                "Web site : <b>http://qdosmsq.dunbar-it.co.uk</b><br>"
                "Email : Norman@Dunbar-it.co.uk<hr>"
                "The source code for this application is available from SourceForge, as follows, using Subversion:"
-               "<br><br><b>svn checkout http://svn.code.sf.net/p/qstripper/code/ qstripper</b>"
+               "<br><br><b>svn checkout https://svn.code.sf.net/p/qstripper/code/ qstripper</b>"
                "<br><br>or as a daily snapshot (in tar format) from</br>"
                "<br><br><b>https://sourceforge.net/p/qstripper/code/HEAD/tarball</b>"));
 }
