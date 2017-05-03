@@ -265,17 +265,8 @@ bool MdiChild::ExportDocbook()
        ArticleTitle = "**** PUT YOUR TITLE HERE PLEASE ****";
     }
 
-/*
-txt.setCodec(QTextCodec::codecForName("UTF-8"));
-txt.setFileName(fileName);
-
-QApplication::setOverrideCursor(Qt::WaitCursor);
-txt.write(document());
-QApplication::restoreOverrideCursor();
- */
-
     QTextStream out(&file);
-    out.setCodec(QTextCodec::codecForName("ISO-8859-15"));
+    out.setCodec(QTextCodec::codecForName("ISO 8859-15"));
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     // XML header first.
