@@ -40,6 +40,7 @@ public:
     bool ExportODF();
     bool ExportDocbook();
     bool ExportRST();
+    bool ExportASC();
     bool TextBold(const bool Checked);
     bool TextItalic(const bool Checked);
     bool TextUnderline(const bool Checked);
@@ -59,6 +60,7 @@ public:
     QString XMLFile;
     QString HTMLFile;
     QString RSTFile;
+    QString ASCFile;
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -78,6 +80,8 @@ private:
     QString DocBookFragment(const QTextFragment &ThisFragment);
     QString RSTParagraph(const QTextBlock &ThisBlock);
     QString RSTFragment(const QTextFragment &ThisFragment);
+    QString ASCParagraph(const QTextBlock &ThisBlock);
+    QString ASCFragment(const QTextFragment &ThisFragment);
     bool maybeSave();
     bool isUntitled;
     bool silentRunning;

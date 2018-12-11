@@ -277,6 +277,13 @@ void MainWindow::ExportRST()
     workspace->setActiveWindow(x);
 }
 
+void MainWindow::ExportASC()
+{
+    MdiChild *x = activeMdiChild();
+    x->ExportASC();
+    workspace->setActiveWindow(x);
+}
+
 void MainWindow::TextBold()
 {
     activeMdiChild()->TextBold(TextBoldAct->isChecked());
@@ -344,7 +351,7 @@ void MainWindow::about()
                "<br><b>QStripper</b> can export Quill documents in the following formats:"
                "<ul>"
                "<li>Text<li>Html<li>Docbook XML<li>PDF<li>ODF: Open Document Format for Open/Libre Office"
-               "<li>RST: ReStructuredText"
+               "<li>RST: ReStructuredText<li>Asciidoctor"
                "</ul>"
                "<hr>"
                "QStripper's own Web site is at: <b>http://qstripper.sourceforge.net/</b>"
@@ -377,6 +384,7 @@ void MainWindow::help()
                "<br><b>--docbook</b> - Export all files to Docbook XML."
                "<br><b>--html</b> - Export all files to HTML format."
                "<br><b>--rst</b> - Export all files to ReStructuredText format."
+               "<br><b>--asc</b> - Export all files to Asciidoctor format."
                "<br><br>All files will be created in the <em>same folder as the input file(s).</em>"
                ));
 }
@@ -396,6 +404,7 @@ void MainWindow::updateMenus()
     ExportTextAct->setEnabled(hasMdiChild);
     ExportDocbookAct->setEnabled(hasMdiChild);
     ExportRSTAct->setEnabled(hasMdiChild);
+    ExportASCAct->setEnabled(hasMdiChild);
     cascadeAct->setEnabled(hasMdiChild);
     nextAct->setEnabled(hasMdiChild);
     previousAct->setEnabled(hasMdiChild);
@@ -591,6 +600,11 @@ void MainWindow::createActions()
     ExportRSTAct->setStatusTip(tr("Export the current file as RST"));
     connect(ExportRSTAct, SIGNAL(triggered()), this, SLOT(ExportRST()));
 
+    ExportASCAct = new QAction(QIcon(":/images/exportasc.png"), tr("Export &ASCiidoctor"), this);
+    ExportASCAct->setShortcut(tr("Ctrl+Shift+R"));
+    ExportASCAct->setStatusTip(tr("Export the current file as ASCIIdoctor"));
+    connect(ExportASCAct, SIGNAL(triggered()), this, SLOT(ExportASC()));
+
     TextBoldAct = new QAction(QIcon(":/images/textbold.png"), tr("&Bold"), this);
     TextBoldAct->setShortcut(Qt::CTRL + Qt::Key_B);
     QFont bold;
@@ -668,6 +682,7 @@ void MainWindow::createMenus()
     exportMenu->addAction(ExportPDFAct);
     exportMenu->addAction(ExportODFAct);
     exportMenu->addAction(ExportRSTAct);
+    exportMenu->addAction(ExportASCAct);
 
     textMenu = menuBar()->addMenu(tr("&Format"));
     textMenu->addAction(TextBoldAct);
@@ -708,6 +723,7 @@ void MainWindow::createToolBars()
     exportToolBar->addAction(ExportPDFAct);
     exportToolBar->addAction(ExportODFAct);
     exportToolBar->addAction(ExportRSTAct);
+    exportToolBar->addAction(ExportASCAct);
 
     textToolBar = addToolBar(tr("Format"));
     textToolBar->addAction(TextBoldAct);

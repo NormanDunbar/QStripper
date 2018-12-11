@@ -25,5 +25,6 @@
         <file>images/exportodf.png</file>
         <file>images/Jupiter.png</file>
         <file>images/exportrst.png</file>
+        <file>images/exportasc.png</file>
     </qresource>
 </RCC>
