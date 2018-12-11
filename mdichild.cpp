@@ -18,6 +18,7 @@
 
 #include <QtGui>
 #include <QStack>
+#include <QtDebug>
 
 #include "mdichild.h"
 #include "quill.h"
@@ -327,31 +328,6 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
     char PlusMinus = 0xB1;
     QChar Euro = 0x20ac;
 
-    // This could be helpful ???? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    /*
-    QString plain = "#include <QtCore>"
-    QString html = Qt::escape(plain);
-    // html == "#include &lt;QtCore&gt;"
-    
-    QString Qt::escape(const QString& plain)
-    {
-        QString rich;
-        rich.reserve(int(plain.length() * 1.1));
-        for (int i = 0; i < plain.length(); ++i) {
-            if (plain.at(i) == QLatin1Char('<'))
-                rich += QLatin1String("&lt;");
-            else if (plain.at(i) == QLatin1Char('>'))
-                rich += QLatin1String("&gt;");
-            else if (plain.at(i) == QLatin1Char('&'))
-                rich += QLatin1String("&amp;");
-            else
-                rich += plain.at(i);
-        }
-        return rich;
-    }
-
-    */
-    
     if (!ThisText.isEmpty()) {
          // Do '&' first - so we don't change '&lt;' to '&amp;lt;' !
          ThisText.replace(QString("&"), QString("&amp;"));
@@ -511,25 +487,174 @@ QString MdiChild::RSTFragment(const QTextFragment &ThisFragment)
     // BEWARE: if an italic fragment has leading whitspace, the
     //         italics wont work in RST as no whitespace is permitted.
     if (Format.font().italic())
-       return "*" + ThisText + "*\\ ";
+       ThisText = "*" + ThisText + "*\\ ";
 
     // There is no underline in RST. :-(
     if (Format.font().underline())
-       return ThisText;
+       ; // do nothing. (Unless we can fix RST of course!)
+
+    // BEWARE: if a bold fragment has leading whitspace, the bold
+    //         wont work in RST as no whitespace is permitted.
+    if (Format.font().bold())
+       ThisText = "**" + ThisText + "**\\ ";
+
+     // These are mutuallu exclusive.
+     switch (Format.verticalAlignment()) {
+        case QTextCharFormat::AlignSuperScript:
+            return ":sup:`" + ThisText + "`\\ ";
+            break;
+        case QTextCharFormat::AlignSubScript:
+            return ":sub:`" + ThisText + "`\\ ";
+            break;
+        case QTextCharFormat::AlignNormal: break;
+        case QTextCharFormat::AlignMiddle: break;
+        case QTextCharFormat::AlignTop: break;
+        case QTextCharFormat::AlignBottom: break;
+        case QTextCharFormat::AlignBaseline: break;
+     }
+
+     return ThisText;
+}
+
+
+// Export a document in ASCIIDoc[tor], in UTF8 encoding.
+bool MdiChild::ExportASC()
+{
+   QString fileName = ASCFile;
+   if (fileName.isEmpty()) {
+     fileName = filePath(curFile) + "/" +
+                fileBasename(curFile) +
+                ".adoc";
+   }
+
+    if (!silentRunning)
+        fileName = QFileDialog::getSaveFileName(this, "Export ASCIIdoctor", fileName, "ASCIIdoctor files (*.adoc;*.ad;*.txt)");
+
+    if (fileName.isEmpty())
+        return false;
+
+    if (fileExtension(fileName).toLower() != "adoc")
+        fileName += ".adoc";
+
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("QStripper"),
+                             tr("Cannot write ASCIIdoctor (ASC) file %1:\n%2.")
+                             .arg(fileName)
+                             .arg(file.errorString()));
+        return false;
+    }
+
+    // Ask user for a title for the ASC Document.
+    bool ok = false;
+    QString ArticleTitle;
+
+    if (!silentRunning)
+        ArticleTitle= QInputDialog::getText(this,
+                                            tr("Enter Article Title"),
+                                            tr("Please enter a title for the article"),
+                                            QLineEdit::Normal, "", &ok);
+    if (!ok) {
+       ArticleTitle = "= YOUR TITLE\n";
+    } else {
+        ArticleTitle = "= " + ArticleTitle + "\n";
+    }
+
+
+    QTextStream out(&file);
+
+    // Pandoc and other converters require UTF8.
+    out.setCodec(QTextCodec::codecForName("UTF-8"));
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    // Make this an article, so use the title from the user.
+    out << ArticleTitle;
+
+    // Iterate over all text blocks in the document and process each one
+    // as a paragraph. Empty paragraphs are ignored.
+    QTextBlock tb = document()->begin();
+    while (tb.isValid()) {
+        QString Paragraph = ASCParagraph(tb);
+        if (!Paragraph.isEmpty())
+            out << endl << Paragraph << endl;
+
+        tb = tb.next();
+    }
+
+    // Finish off the article.
+    out << endl;
+
+    QApplication::restoreOverrideCursor();
+    ASCFile = fileName;
+    document()->setModified(false);
+    return true;
+}
+
+
+// For each and every paragraph, iterate over each fragment of text.
+QString MdiChild::ASCParagraph(const QTextBlock &ThisBlock)
+{
+    QString Paragraph;
+    for (QTextBlock::iterator it = ThisBlock.begin(); !it.atEnd(); it++) {
+      QTextFragment tf = it.fragment();
+      Paragraph += ASCFragment(tf);
+    }
+
+    return Paragraph;
+}
+
+// This is where we process each paragraph's text fragments and remove
+// invalid ASCIIdoctor characters.
+QString MdiChild::ASCFragment(const QTextFragment &ThisFragment)
+{
+    QTextCharFormat Format = ThisFragment.charFormat();
+    QString ThisText = ThisFragment.text();
+
+    qDebug() << "Fragment:'" << ThisText << "'" << endl;
+
+    QString euroInput = QString(QChar(0x80));
+    QString euroOutput = QString(QChar(0x20ac));  // Unicode U+20AC for Euro.
+
+    if (!ThisText.isEmpty()) {
+         // Do '\' first or else you get all sorts of stuff going wrong!
+         // And '\' needs to be escaped, so becomes '\\' - don't forget!
+         //ThisText.replace(QString("\\"), QString("\\\\"));
+         //ThisText.replace(QString("_"), QString("\\_"));
+         //ThisText.replace(QString("*"), QString("\\*"));
+         //ThisText.replace(QString("$"), QString("\\$"));
+         //ThisText.replace(QString("\t"), QString("    "));
+         //ThisText.replace(QString("`"), QString("\\`"));
+         //ThisText.replace(euroInput, euroOutput);
+    }
+
+    // Here we try to decode what text attributes have been applied
+    // and return a suitable XML 'statment' to accomodate them.
+    // BEWARE: if an italic fragment has leading whitespace, the
+    //         italics wont work in ASCIIdoctor as no whitespace is permitted.
+    if (Format.font().italic()) {
+       ThisText = "__" + ThisText + "__";
+    }
+
+    // There is no underline in ASCIIdoctor. :-(
+    if (Format.font().underline()) {
+       ; // Do nothing, until ASCIIdoctor is fixed.
+    }
 
     // BEWARE: if a bold fragment has leading whitspace, the bold
     //         bold wont work in RST as no whitespace is permitted.
-    if (Format.font().bold())
-       return "**" + ThisText + "**\\ ";
+    if (Format.font().bold()) {
+       ThisText =  "**" + ThisText + "**";
+    }
 
      switch (Format.verticalAlignment()) {
-        case QTextCharFormat::AlignNormal: return ThisText;
-        case QTextCharFormat::AlignSuperScript: return ":sup:`" +
-                                                       ThisText +
-                                                       "`\\ ";
-        case QTextCharFormat::AlignSubScript: return ":sub:`" +
-                                                       ThisText +
-                                                       "`\\ ";
+        case QTextCharFormat::AlignSuperScript:
+            return "^" + ThisText + "^";
+            break;
+        case QTextCharFormat::AlignSubScript:
+            return "~" + ThisText + "~";
+            break;
+        case QTextCharFormat::AlignNormal: break;
         case QTextCharFormat::AlignMiddle: break;
         case QTextCharFormat::AlignTop: break;
         case QTextCharFormat::AlignBottom: break;

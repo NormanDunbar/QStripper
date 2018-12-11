@@ -2,9 +2,13 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.13"
+#define QSTRIPPER_VERSION "1.14"
 
 // Version History
+// 1.14 - Added export in ASCIIDOC[tor] format. This alos fixed a weird problem
+//        where there was a set of minimise, maximise and close buttons on the
+//        far left of the application's display. I didn't do anything to fix this
+//        by the way, they just vanished as mysteriously as they arrived.
 //
 // 1.13 - FINALLY!!! Fixed that damned Euro! It now displays in the editor and exports!
 //        Added a long needed "recent files" option to the file menu. The last 10
