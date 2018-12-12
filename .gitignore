@@ -11,3 +11,5 @@ TestFiles/*.xml
 TestFiles/*.txt
 TestFiles/*.html
 
+debug/*
+release/*
