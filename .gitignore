@@ -1,0 +1,13 @@
+Makefile*
+QStripper
+QStripper.pro.user*
+*.o
+*.obj
+TestFiles/*.rst
+TestFiles/*.adoc
+TestFiles/*.odf
+TestFiles/*.pdf
+TestFiles/*.xml
+TestFiles/*.txt
+TestFiles/*.html
+
