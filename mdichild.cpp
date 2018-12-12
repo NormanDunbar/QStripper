@@ -18,7 +18,7 @@
 
 #include <QtGui>
 #include <QStack>
-#include <QtDebug>
+//#include <QtDebug>
 
 #include "mdichild.h"
 #include "quill.h"
@@ -610,8 +610,6 @@ QString MdiChild::ASCFragment(const QTextFragment &ThisFragment)
 {
     QTextCharFormat Format = ThisFragment.charFormat();
     QString ThisText = ThisFragment.text();
-
-    qDebug() << "Fragment:'" << ThisText << "'" << endl;
 
     QString euroInput = QString(QChar(0x80));
     QString euroOutput = QString(QChar(0x20ac));  // Unicode U+20AC for Euro.

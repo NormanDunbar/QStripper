@@ -356,10 +356,10 @@ void MainWindow::about()
                "<hr>"
                "QStripper's own Web site is at: <b>http://qstripper.sourceforge.net/</b>"
                "<hr>"
-               "The source code for this application is available from SourceForge, as follows, using Subversion:"
-               "<br><br><b>svn checkout https://svn.code.sf.net/p/qstripper/code/ qstripper</b>"
-               "<br><br>or as a daily snapshot (in tar format) from</br>"
-               "<br><br><b>https://sourceforge.net/p/qstripper/code/HEAD/tarball</b>"));
+               "The source code for this application is available from GitHub, as follows, using git:"
+               "<br><br><b>git clone https://github.com/NormanDunbar.QStripper.git</b>"
+               "<br><br>or as a current snapshot (in zip format) from</br>"
+               "<br><br><b>https://github.com/NormanDunbar/QStripper/archive/master.zip</b>"));
 }
 
 void MainWindow::help()
@@ -803,7 +803,7 @@ bool MainWindow::processArgs(int argc, char *argv[])
     // qstripper --export --fmt list_of_files
     //
     // Fmt is one of the following:
-    // --pdf --docbook --odf --html --text --rst
+    // --pdf --docbook --odf --html --text --rst --asc
     //
 
     // What's the fisrt argument passed?
@@ -827,6 +827,7 @@ bool MainWindow::processArgs(int argc, char *argv[])
             exportFormat != "--text" &&
             exportFormat != "--odf" &&
             exportFormat != "--rst" &&
+            exportFormat != "--asc" &&
             exportFormat != "--html") {
             QMessageBox::critical(this, "QStripper - Invalid export format", QString(argv[2]) + " is not a valid export format!");
             return true;
@@ -861,6 +862,16 @@ bool MainWindow::processArgs(int argc, char *argv[])
             if (exportFormat == "--odf") {
                 c->ODFFile.clear();
                 c->ExportODF();
+            }
+
+            if (exportFormat == "--rst") {
+                c->RSTFile.clear();
+                c->ExportRST();
+            }
+
+            if (exportFormat == "--asc") {
+                c->ASCFile.clear();
+                c->ExportASC();
             }
 
             if (exportFormat == "--html") {

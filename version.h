@@ -2,9 +2,13 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.14"
+#define QSTRIPPER_VERSION "1.15"
 
 // Version History
+// 1.15 - Some idiot programmer, ie, me, forgot to allow --rst and --asc as
+//        valid export formats when using command line QStripper. This has now
+//        been fixed.
+//
 // 1.14 - Added export in ASCIIDOC[tor] format. This alos fixed a weird problem
 //        where there was a set of minimise, maximise and close buttons on the
 //        far left of the application's display. I didn't do anything to fix this
