@@ -13,3 +13,4 @@ TestFiles/*.html
 
 debug/*
 release/*
+moc*.cpp
