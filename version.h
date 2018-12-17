@@ -2,9 +2,13 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.15"
+#define QSTRIPPER_VERSION "1.16"
 
 // Version History
+//
+// 1.16 - Fulfilled a request to have background images configurable, and
+//        would like Saturn rather than Jupiter. I did my best! (Derek Stewart)
+//
 // 1.15 - Some idiot programmer, ie, me, forgot to allow --rst and --asc as
 //        valid export formats when using command line QStripper. This has now
 //        been fixed.

@@ -52,8 +52,19 @@ MainWindow::MainWindow()
     // Background Image.
     //QBrush mdiBrush(QColor(255, 255, 220));
 
-    // Set up the default background imange.
-    Jupiter = QImage(":/images/Jupiter.png");
+    // Set up the default background image - look for background.png
+    // in the executable folder and use that, otherwise, use the background.jpg
+    // and finally, just use the inbuilt default.
+    QString appPath = QCoreApplication::applicationDirPath ();
+    Jupiter = QImage(appPath + "/" + "background.png");
+
+    if (Jupiter.isNull()) {
+        Jupiter.load(appPath + "/" + "background.jpg");
+    }
+
+    if (Jupiter.isNull()) {
+        Jupiter.load(":/images/Jupiter.png");
+    }
 
     workspace->setScrollBarsEnabled(true);
 }
