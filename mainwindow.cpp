@@ -365,7 +365,7 @@ void MainWindow::about()
                "<li>RST: ReStructuredText<li>Asciidoctor"
                "</ul>"
                "<hr>"
-               "QStripper's own Web site is at: <b>http://qstripper.sourceforge.net/</b>"
+               "'QL 2001' aka 'background.jpg' supplied by Cristian (on qlforum.co.uk) - thanks Cristian."
                "<hr>"
                "The source code for this application is available from GitHub, as follows, using git:"
                "<br><br><b>git clone https://github.com/NormanDunbar.QStripper.git</b>"
@@ -612,7 +612,7 @@ void MainWindow::createActions()
     connect(ExportRSTAct, SIGNAL(triggered()), this, SLOT(ExportRST()));
 
     ExportASCAct = new QAction(QIcon(":/images/exportasc.png"), tr("Export &ASCiidoctor"), this);
-    ExportASCAct->setShortcut(tr("Ctrl+Shift+R"));
+    ExportASCAct->setShortcut(tr("Ctrl+Shift+A"));
     ExportASCAct->setStatusTip(tr("Export the current file as ASCIIdoctor"));
     connect(ExportASCAct, SIGNAL(triggered()), this, SLOT(ExportASC()));
 

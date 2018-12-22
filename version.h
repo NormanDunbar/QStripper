@@ -2,9 +2,12 @@
 #define VERSION_H
 
 // Change this when you update things. It is used in Help->About.
-#define QSTRIPPER_VERSION "1.16"
+#define QSTRIPPER_VERSION "1.17"
 
 // Version History
+// 1.17 - Credited Cristian for his 'background.jpg' image aka QL 2001. Also
+//        fixed duplicate shortcut CTRL+SHIFT+R which exports RST and ASC.
+//        Now uses CTRL+SHIFT+A for ASC exports.
 //
 // 1.16 - Fulfilled a request to have background images configurable, and
 //        would like Saturn rather than Jupiter. I did my best! (Derek Stewart)
@@ -13,7 +16,7 @@
 //        valid export formats when using command line QStripper. This has now
 //        been fixed.
 //
-// 1.14 - Added export in ASCIIDOC[tor] format. This alos fixed a weird problem
+// 1.14 - Added export in ASCIIDOC[tor] format. This also fixed a weird problem
 //        where there was a set of minimise, maximise and close buttons on the
 //        far left of the application's display. I didn't do anything to fix this
 //        by the way, they just vanished as mysteriously as they arrived.
@@ -57,7 +60,6 @@
 //        qstripper --export --fmt list_of_files
 //        fmt = --pdf, --docbook, --odf, --text or --html.
 //        Exported files are created in the same folder as the input files.
-//
 //
 // 1.08 - Added ability to file->Open multiple files. (Derek Stewart)
 //        After opening all files, the windows are cascaded to show them all. (Derek Stewart)
