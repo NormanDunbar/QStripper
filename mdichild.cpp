@@ -140,17 +140,7 @@ bool MdiChild::ExportHTML()
                              .arg(file.errorString()));
         return false;
     }
-/*
-    QTextStream out(&file);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    //-------------------------------------------------------------------
-    // This works, but not very nicely. Need to add a method to make sure
-    // that proper HTML is generated from the Quill document.
-    //-------------------------------------------------------------------
-    out << toHtml();
-    QApplication::restoreOverrideCursor();
-*/
     QTextDocumentWriter html;
     html.setFormat("HTML");
     html.setCodec(QTextCodec::codecForName("UTF-8"));
@@ -284,8 +274,9 @@ bool MdiChild::ExportDocbook()
     QTextBlock tb = document()->begin();
     while (tb.isValid()) {
         QString Paragraph = DocBookParagraph(tb);
-        if (!Paragraph.isEmpty())
-        out << "<para>" << Paragraph << "</para>\n";
+        if (!Paragraph.isEmpty()) {
+            out << "<para>" << Paragraph << "</para>\n";
+        }
 
         tb = tb.next();
     }
@@ -324,9 +315,8 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
     QString ThisText = ThisFragment.text();
 
     // We've got hard spaces, +/- etc in the text to translate.
-    char Nbsp = 0xA0;
-    char PlusMinus = 0xB1;
-    QChar Euro = 0x20ac;
+    unsigned char Nbsp = 0xA0;
+    unsigned char PlusMinus = 0xB1;
 
     if (!ThisText.isEmpty()) {
          // Do '&' first - so we don't change '&lt;' to '&amp;lt;' !
@@ -336,7 +326,6 @@ QString MdiChild::DocBookFragment(const QTextFragment &ThisFragment)
          ThisText.replace(QString("\t"), QString("    "));
          ThisText.replace(QString(PlusMinus), QString("&plusmn;"));
          ThisText.replace(QString(Nbsp), QString(" "));
-         //ThisText.replace(QString(Euro), QString("&euro;"));
     }
 
     // Here we try to decode what text attributes have been applied
@@ -477,9 +466,7 @@ QString MdiChild::RSTFragment(const QTextFragment &ThisFragment)
          ThisText.replace(QString("_"), QString("\\_"));
          ThisText.replace(QString("*"), QString("\\*"));
          ThisText.replace(QString("$"), QString("\\$"));
-         //ThisText.replace(QString("\t"), QString("    "));
          ThisText.replace(QString("`"), QString("\\`"));
-         //ThisText.replace(euroInput, euroOutput);
     }
 
     // Here we try to decode what text attributes have been applied
@@ -490,22 +477,21 @@ QString MdiChild::RSTFragment(const QTextFragment &ThisFragment)
        ThisText = "*" + ThisText + "*\\ ";
 
     // There is no underline in RST. :-(
-    if (Format.font().underline())
+    if (Format.font().underline()) {
        ; // do nothing. (Unless we can fix RST of course!)
+    }
 
     // BEWARE: if a bold fragment has leading whitspace, the bold
     //         wont work in RST as no whitespace is permitted.
     if (Format.font().bold())
        ThisText = "**" + ThisText + "**\\ ";
 
-     // These are mutuallu exclusive.
+     // These are mutually exclusive.
      switch (Format.verticalAlignment()) {
         case QTextCharFormat::AlignSuperScript:
             return ":sup:`" + ThisText + "`\\ ";
-            break;
         case QTextCharFormat::AlignSubScript:
             return ":sub:`" + ThisText + "`\\ ";
-            break;
         case QTextCharFormat::AlignNormal: break;
         case QTextCharFormat::AlignMiddle: break;
         case QTextCharFormat::AlignTop: break;
@@ -611,21 +597,6 @@ QString MdiChild::ASCFragment(const QTextFragment &ThisFragment)
     QTextCharFormat Format = ThisFragment.charFormat();
     QString ThisText = ThisFragment.text();
 
-    QString euroInput = QString(QChar(0x80));
-    QString euroOutput = QString(QChar(0x20ac));  // Unicode U+20AC for Euro.
-
-    if (!ThisText.isEmpty()) {
-         // Do '\' first or else you get all sorts of stuff going wrong!
-         // And '\' needs to be escaped, so becomes '\\' - don't forget!
-         //ThisText.replace(QString("\\"), QString("\\\\"));
-         //ThisText.replace(QString("_"), QString("\\_"));
-         //ThisText.replace(QString("*"), QString("\\*"));
-         //ThisText.replace(QString("$"), QString("\\$"));
-         //ThisText.replace(QString("\t"), QString("    "));
-         //ThisText.replace(QString("`"), QString("\\`"));
-         //ThisText.replace(euroInput, euroOutput);
-    }
-
     // Here we try to decode what text attributes have been applied
     // and return a suitable XML 'statment' to accomodate them.
     // BEWARE: if an italic fragment has leading whitespace, the
@@ -640,7 +611,7 @@ QString MdiChild::ASCFragment(const QTextFragment &ThisFragment)
     }
 
     // BEWARE: if a bold fragment has leading whitspace, the bold
-    //         bold wont work in RST as no whitespace is permitted.
+    //         won't work in RST as no whitespace is permitted.
     if (Format.font().bold()) {
        ThisText =  "**" + ThisText + "**";
     }
@@ -648,10 +619,8 @@ QString MdiChild::ASCFragment(const QTextFragment &ThisFragment)
      switch (Format.verticalAlignment()) {
         case QTextCharFormat::AlignSuperScript:
             return "^" + ThisText + "^";
-            break;
         case QTextCharFormat::AlignSubScript:
             return "~" + ThisText + "~";
-            break;
         case QTextCharFormat::AlignNormal: break;
         case QTextCharFormat::AlignMiddle: break;
         case QTextCharFormat::AlignTop: break;

@@ -49,9 +49,6 @@ MainWindow::MainWindow()
     // Try to make a decent size.
     workspace->setMinimumSize(QSize(600, 480));
 
-    // Background Image.
-    //QBrush mdiBrush(QColor(255, 255, 220));
-
     // Set up the default background image - look for background.png
     // in the executable folder and use that, otherwise, use the background.jpg
     // and finally, just use the inbuilt default.
@@ -240,9 +237,9 @@ void MainWindow::paste()
 }
 
 //-----------------------------------------------------------------------------
-// Something wierd here. When we do an exportXXXX the active window is changed
+// Something weird here. When we do an exportXXXX the active window is changed
 // to the first open window in the list. The 'hack' below saves the current one
-// the resets it after the export. I suspect, but have not proved, that it is
+// and resets it after the export. I suspect, but have not proved, that it is
 // propbably because the active window changes when the FileOpen dialogue is
 // displayed.
 //-----------------------------------------------------------------------------
@@ -402,7 +399,7 @@ void MainWindow::help()
 
 void MainWindow::updateMenus()
 {
-    bool hasMdiChild = (activeMdiChild() != 0);
+    bool hasMdiChild = (activeMdiChild() != nullptr);
     pasteAct->setEnabled(hasMdiChild);
     closeAct->setEnabled(hasMdiChild);
     closeAllAct->setEnabled(hasMdiChild);
@@ -650,7 +647,7 @@ void MainWindow::createActions()
 
     // Keep a list of recent files in a QAction array.
     // Up to 5 will be kept.
-    QAction *recentFileAction = 0;
+    QAction *recentFileAction = nullptr;
     for (int i = 0; i < maxRecentFiles; i++) {
         recentFileAction = new QAction(QIcon(":/images/open.png"), tr("&Open..."), this);
         recentFileAction->setVisible(false);
@@ -799,7 +796,7 @@ MdiChild *MainWindow::findMdiChild(const QString &fileName)
         if (mdiChild->currentFile() == canonicalFilePath)
             return mdiChild;
     }
-    return 0;
+    return nullptr;
 }
 
 // If we have any passed args on startup, process them here.

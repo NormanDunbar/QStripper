@@ -6,8 +6,10 @@
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TEMPLATE = app
 TARGET += 
+win32 {
 DEPENDPATH += . \
               /e/Users/hisg494/QT4.8.7/lib
+}
 INCLUDEPATH += .
 
 # Force 32 bit compilations on Windows.
