@@ -13,4 +13,5 @@ TestFiles/*.html
 
 debug/*
 release/*
+build/*
 moc*.cpp
