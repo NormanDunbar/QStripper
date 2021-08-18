@@ -44,10 +44,10 @@ QuillDoc::QuillDoc(const QString FileName)
     fValid = false;
     fErrorMessage.clear();
     fPCFile = false;
-    fLayoutTableQL = NULL;
-    fLayoutTableDOS = NULL;
-    fParagraphTable = NULL;
-    fTabTable = NULL;
+    fLayoutTableQL = nullptr;
+    fLayoutTableDOS = nullptr;
+    fParagraphTable = nullptr;
+    fTabTable = nullptr;
 
     // Try to load the file as raw data after performing a few checks to
     // see if it may be a Quill document.
@@ -171,8 +171,6 @@ void QuillDoc::parseText()
     // Create a *paragraph* level default. This can take TABs too! (QTextOption::Tab)
     // TODO: Work out how to use the tabs. Decimal? Right? Left?
     QTextBlockFormat defaultBlockFormat;
-    //defaultBlockFormat.setBackground(QColor(255, 255, 220));  // Light Yellow.
-
 
     // MESSING ABOUT HERE! ********************************************************
 
@@ -214,27 +212,8 @@ void QuillDoc::parseText()
     // DOS files don't appear to have a text colour, so we use GREEN for those.
     defaultFormat.setForeground(Qt::black); // Because paper is pale yellow!
 
-    /*----------------------------------------------------------------------
-    // While I tried to use the original black paper and white or green ink
-    // it seems that setting the paper to black means that the text carat
-    // becomes invisible and this is not yet able to be changed. Sigh.
-
-    if (!fPCFile) {
-        // Try to use QL text colour...
-        if (((layoutTableQL *)fLayoutTable)->textColour == LAYOUT_TEXT_GREEN) {
-            defaultFormat.setForeground(Qt::darkGreen);
-        } else {
-            defaultFormat.setForeground(Qt::black); // Because paper is pale yellow!
-        }
-    } else {
-        // Use DOS settings - which doesn't have a text colour!
-        defaultFormat.setForeground(Qt::darkGreen);
-    }
-    ----------------------------------------------------------------------*/
-
     // The current *character* format in this paragraph...
     QTextCharFormat charFormat;
-
 
     // Flags that toggle formatting of characters.
     bool SuperOn = false;
@@ -280,7 +259,6 @@ void QuillDoc::parseText()
                 BoldOn = !BoldOn;
                 cursor.setCharFormat(charFormat);
                 continue;
-                break;
 
          case 16: if (UnderOn) {
                     charFormat.setFontUnderline(false);
@@ -291,7 +269,6 @@ void QuillDoc::parseText()
 
                 cursor.setCharFormat(charFormat);
                 continue;
-                break;
 
          case 17: if (SubOn) {
                     charFormat.setVerticalAlignment(QTextCharFormat::AlignNormal);
@@ -302,7 +279,6 @@ void QuillDoc::parseText()
 
                 cursor.setCharFormat(charFormat);
                 continue;
-                break;
 
          case 18: if (SuperOn) {
                     charFormat.setVerticalAlignment(QTextCharFormat::AlignNormal);
@@ -313,7 +289,6 @@ void QuillDoc::parseText()
 
                 cursor.setCharFormat(charFormat);
                 continue;
-                break;
 
          case 19: if (ItalicOn) {
                     charFormat.setFontItalic(false);
@@ -324,9 +299,8 @@ void QuillDoc::parseText()
                   ItalicOn = !ItalicOn;
                   cursor.setCharFormat(charFormat);
                   continue;
-                  break;
 
-         case 30: continue; break;                       // Soft hyphen - ignored.
+         case 30: continue;                     // Soft hyphen - ignored.
 
          default: cursor.insertText(qChar);     // Everything else.
 
@@ -399,175 +373,6 @@ QTextDocument *QuillDoc::getDocument()
 }
 
 
-//------------------------------------------------------------------------------
-// Returns a Windows (iso-latin) character for a given QDOS character.
-//------------------------------------------------------------------------------
-/*
-quint8  QuillDoc::translate(const quint8 c)
-{
-    static quint8 Dos2QL[] = {  // DOS char, QL Char
-            127, 127, // UNCHANGED
-            128, 168, // C cedilla
-            129, 135, // u umlaut
-            130, 131, // e acute
-            131, 142, // a circumflex
-            132, 128, // a umlaut
-            133, 141, // a grave
-            134, 130, // a acute
-            135, 136, // c cdilla
-            136, 145, // e circumflex
-            137, 143, // e umlaut
-            138, 144, // e grave
-            139, 146, // i umlaut
-            140, 149, // i circumflex
-            141, 148, // i grave
-            142, 160, // A umlaut
-            143, 143, // UNCHANGED (A circle)
-            144, 163, // E acute
-            145, 138, // ae ligature
-            146, 170, // AE ligature
-            147, 152, // o circumflex
-            148, 132, // o umlaut
-            149, 151, // o grave
-            150, 155, // u circumflex
-            151, 154, // u grave
-            152, 152, // UNCHANGED (y umlaut)
-            153, 164, // O umlaut
-            154, 167, // U umlaut
-            155, 157, // cent
-            156, 156, // UNCHANGED (UK Pound)
-            157, 158, // Yen
-            158, 158, // UNCHANGED (Pts)
-            159, 159, // UNCHANGED (Italic f)
-            160, 140, // a grave
-            161, 147, // i acute
-            162, 150, // o acute
-            163, 153, // u acute
-            164, 137, // n tilde
-            165, 169, // N tilde
-            166, 166, // UNCHANGED (a underbar)
-            167, 167, // UNCHANGED (o underbar)
-            168, 180, // iquestion
-            169, 169, // UNCHANGED (Like 170 but reversed.)
-            170, 170, // UNCHANGED (???)
-            171, 171, // UNCHANGED (1/2)
-            172, 172, // UNCHANGED (1/4)
-            173, 173, // UNCHANGED (iExclamation)
-            174, 184, // <<
-            175, 185, // >>
-            176, 176, // UNCHANGED (blob)
-            177, 177, // UNCHANGED (blob)
-            178, 178, // UNCHANGED (blob)
-            179, 179, // UNCHANGED Box
-            180, 180, // UNCHANGED Box
-            181, 181, // UNCHANGED Box
-            182, 182, // UNCHANGED Box
-            183, 183, // UNCHANGED Box
-            184, 184, // UNCHANGED Box
-            185, 185, // UNCHANGED Box
-            186, 186, // UNCHANGED Box
-            187, 187}; // UNCHANGED Box
-
-    static quint8 Ql2Win[] = {  // QL char, Windows char
-           127, 169, // Copyright (c)
-           128, 228, // a umlaut
-           129, 227, // a tilde
-           130, 229, // a circle
-           131, 233, // e acute
-           132, 246, // o umlaut
-           133, 245, // o tilde
-           134, 248, // o with /
-           135, 252, // u umlaut
-           136, 231, // c cedilla
-           137, 241, // n tilde
-           138, 230, // ae ligature
-           139, 156, // oe Ligature
-           140, 225, // a acute
-           141, 224, // a grave
-           142, 226, // a circumflex (a^)
-           143, 235, // e umlaut
-           144, 232, // e grave
-           145, 234, // e curcumflex
-           146, 239, // i umlaut
-           147, 237, // i acute
-           148, 236, // i grave
-           149, 238, // i circumflex
-           150, 243, // o acute
-           151, 242, // o grave
-           152, 244, // o circumflex
-           153, 250, // u acute
-           154, 249, // u grave
-           155, 251, // u circumflex
-           156, 223, // sz ligature (German B?)
-           157, 162, // cent
-           158, 165, // Yen
-           159, 180, // acute
-           160, 196, // A umlaut
-           161, 195, // A tilde
-           162, 194, // A circumflex
-           163, 201, // E acute
-           164, 214, // O umlaut
-           165, 213, // O tilde
-           166, 216, // O with /
-           167, 220, // U umlaut
-           168, 199, // C cedilla
-           169, 209, // N tilde
-           170, 198, // AE ligature
-           171, 140, // OE Ligature
-           172, 172, // ???
-           173, 173, // ???
-           174, 174, // ???
-           175, 175, // ???
-           176, 181, // Mu (micro as in u)
-           177, 112, // Pi (as in p)
-           178, 178, // ???
-           179, 161, // iexclamation (upsside down !)
-           180, 191, // iquestion (upside down ?)
-           181, 128, // Euro
-           182, 167, // Section marker
-           183, 183, // ???
-           184, 171, // Double left arrow <<
-           185, 187, // Double right arrow >>
-           186, 176, // Degree
-           187, 247}; // Divide
-
-    // First, PC to QL translation. This is incomplete at present!
-    quint8 cc = c;
-
-    // If this is a PC file, convert from DOS to QL first...
-    if (fPCFile) {
-        // Pound Sterling.
-        if (cc == 156) {cc = 96; goto ql_convert;}
-
-        // Higher than 187 characters.
-        switch (cc) {
-           case 225: cc = 156; goto ql_convert; break; // sz ligature
-           case 227: cc = 177; goto ql_convert; break; // Pi(co) (p)
-           case 230: cc = 176; goto ql_convert; break; // micro (u)
-           case 237: cc = 166; goto ql_convert; break; // O slash
-           case 246: cc = 187; goto ql_convert; break; // Divide
-           case 248: cc = 186; goto ql_convert; break; // Degree
-        }
-
-        // Unchanged characters
-        if (cc < 127 || cc > 187) { goto ql_convert; } // Do nothing.
-
-        // All the rest.
-        cc = Dos2QL[ ((cc - 127) *2) +1];
-    }
-
-ql_convert:
-    // Now convert from QL to Windows.
-    // Pound Sterling.
-    if (cc == 96) return 163;
-
-    // Unchanged characters.
-    if (cc < 127 || cc > 187) return cc;
-        
-    // All the rest.
-    return (Ql2Win[ ((cc - 127) * 2) + 1 ]);
-}
-*/
 
 //------------------------------------------------------------------------------
 // Returns a QChar (in Unicode) for a given PC/QDOS character.

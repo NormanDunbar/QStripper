@@ -8,6 +8,8 @@
 // 1.17 - Credited Cristian for his 'background.jpg' image aka QL 2001. Also
 //        fixed duplicate shortcut CTRL+SHIFT+R which exports RST and ASC.
 //        Now uses CTRL+SHIFT+A for ASC exports.
+//        Fixed a pile of C++17 Warnings.
+//        Removed a lot of commented out code, it's not used.
 //
 // 1.16 - Fulfilled a request to have background images configurable, and
 //        would like Saturn rather than Jupiter. I did my best! (Derek Stewart)
